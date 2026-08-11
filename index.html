@@ -8,13 +8,16 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
         body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; overflow-x: hidden; }
         .gradient-text {
             background: linear-gradient(to right, #38bdf8, #818cf8);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 10px 25px -5px rgba(56, 189, 248, 0.2); transition: all 0.3s ease; }
+        .card-hover { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 12px 30px -5px rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.4); }
         .hidden-lang { display: none !important; }
         
         /* Modal Styles */
@@ -27,106 +30,42 @@
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #475569; }
 
-        .profile-glow { box-shadow: 0 0 30px rgba(56, 189, 248, 0.3); }
+        .profile-glow { box-shadow: 0 0 40px rgba(56, 189, 248, 0.2); }
 
-        /* ==== Şebeke Frekansı Widget & Elektrik Dalgası Efektleri ==== */
-        @keyframes pulse-dot { 0%,100% { box-shadow: 0 0 0 0 rgba(52,211,153,0.6); } 50% { box-shadow: 0 0 0 6px rgba(52,211,153,0); } }
-        .freq-live-dot { animation: pulse-dot 2s infinite; }
-
-        @keyframes freq-glow { 0%,100% { box-shadow: 0 0 20px rgba(56,189,248,0.15), 0 10px 25px -5px rgba(0,0,0,0.4); } 50% { box-shadow: 0 0 32px rgba(56,189,248,0.4), 0 10px 25px -5px rgba(0,0,0,0.4); } }
-        #freq-widget { animation: freq-glow 3.5s ease-in-out infinite; transition: all .3s ease; }
-        #freq-widget.freq-collapsed .freq-body { display: none; }
-
-        @keyframes wave-scroll-a { from { transform: translateX(0); } to { transform: translateX(-900px); } }
-        @keyframes wave-scroll-b { from { transform: translateX(0); } to { transform: translateX(-1100px); } }
-        .wave-track-a { animation: wave-scroll-a 9s linear infinite; }
-        .wave-track-b { animation: wave-scroll-b 13s linear infinite reverse; }
-
-        @keyframes spark-float {
-            0% { transform: translateY(0) scale(0.6); opacity: 0; }
-            15% { opacity: 1; }
-            85% { opacity: 1; }
-            100% { transform: translateY(-140px) scale(0.2); opacity: 0; }
+        @keyframes radiate {
+            0% { opacity: 0; transform: translateY(0) scale(0.95); stroke-width: 2px; }
+            50% { opacity: 0.6; }
+            100% { opacity: 0; transform: translateY(-250px) scale(1.4); stroke-width: 1px; }
         }
-        .spark { position: absolute; width: 3px; height: 3px; background: #38bdf8; border-radius: 50%; box-shadow: 0 0 8px 2px rgba(56,189,248,0.9); animation: spark-float 5s ease-in infinite; }
-
-        @keyframes flicker-line { 0%,100% { opacity: .5; } 50% { opacity: 1; } }
-        .section-divider-wave { animation: flicker-line 3s ease-in-out infinite; }
+        .signal-wave {
+            animation: radiate 5s infinite cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            transform-origin: center bottom;
+        }
+        .wave-delay-1 { animation-delay: 0s; }
+        .wave-delay-2 { animation-delay: 1.6s; }
+        .wave-delay-3 { animation-delay: 3.2s; }
+        
+        /* Focus Badges Glow */
+        .focus-badge { position: relative; overflow: hidden; }
+        .focus-badge::before {
+            content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.1), transparent);
+            transform: skewX(-20deg); transition: 0.5s;
+        }
+        .focus-badge:hover::before { left: 150%; }
     </style>
 </head>
 <body class="antialiased selection:bg-sky-500 selection:text-white">
 
-    <!-- Sitenin Arkasında Sabit Kalan Hareketli Elektrik Dalgaları -->
-    <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none bg-slate-950">
-        <svg width="0" height="0" style="position:absolute">
-            <defs>
-                <linearGradient id="waveGradA" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.2"/>
-                    <stop offset="50%" stop-color="#7dd3fc" stop-opacity="1"/>
-                    <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.2"/>
-                </linearGradient>
-                <linearGradient id="waveGradB" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stop-color="#818cf8" stop-opacity="0.2"/>
-                    <stop offset="50%" stop-color="#c4b5fd" stop-opacity="1"/>
-                    <stop offset="100%" stop-color="#818cf8" stop-opacity="0.2"/>
-                </linearGradient>
-                <filter id="waveGlow" x="-50%" y="-50%" width="200%" height="200%">
-                    <feGaussianBlur stdDeviation="2.5" result="blur"/>
-                    <feMerge>
-                        <feMergeNode in="blur"/>
-                        <feMergeNode in="SourceGraphic"/>
-                    </feMerge>
-                </filter>
-            </defs>
-        </svg>
-        <div class="absolute inset-x-0 top-[10%] h-24 opacity-[0.28] flex">
-            <svg class="wave-track-a flex-shrink-0" width="900" height="110" viewBox="0 0 900 110" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M0,55 C37.5,15 75,95 112.5,55 C150,15 187.5,95 225,55 C262.5,15 300,95 337.5,55 C375,15 412.5,95 450,55 C487.5,15 525,95 562.5,55 C600,15 637.5,95 675,55 C712.5,15 750,95 787.5,55 C825,15 862.5,95 900,55" stroke="url(#waveGradA)" stroke-width="2" fill="none" filter="url(#waveGlow)"/>
-            </svg>
-            <svg class="wave-track-a flex-shrink-0" width="900" height="110" viewBox="0 0 900 110" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M0,55 C37.5,15 75,95 112.5,55 C150,15 187.5,95 225,55 C262.5,15 300,95 337.5,55 C375,15 412.5,95 450,55 C487.5,15 525,95 562.5,55 C600,15 637.5,95 675,55 C712.5,15 750,95 787.5,55 C825,15 862.5,95 900,55" stroke="url(#waveGradA)" stroke-width="2" fill="none" filter="url(#waveGlow)"/>
-            </svg>
-        </div>
-        <div class="absolute inset-x-0 top-[42%] h-24 opacity-[0.22] flex">
-            <svg class="wave-track-b flex-shrink-0" width="1100" height="110" viewBox="0 0 1100 110" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M0,55 C45,90 90,20 135,55 C180,90 225,20 270,55 C315,90 360,20 405,55 C450,90 495,20 540,55 C585,90 630,20 675,55 C720,90 765,20 810,55 C855,90 900,20 945,55 C990,90 1035,20 1080,55 C1100,60 1100,55 1100,55" stroke="url(#waveGradB)" stroke-width="2" fill="none" filter="url(#waveGlow)"/>
-            </svg>
-            <svg class="wave-track-b flex-shrink-0" width="1100" height="110" viewBox="0 0 1100 110" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M0,55 C45,90 90,20 135,55 C180,90 225,20 270,55 C315,90 360,20 405,55 C450,90 495,20 540,55 C585,90 630,20 675,55 C720,90 765,20 810,55 C855,90 900,20 945,55 C990,90 1035,20 1080,55 C1100,60 1100,55 1100,55" stroke="url(#waveGradB)" stroke-width="2" fill="none" filter="url(#waveGlow)"/>
-            </svg>
-        </div>
-        <div class="absolute inset-x-0 top-[74%] h-24 opacity-[0.18] flex">
-            <svg class="wave-track-a flex-shrink-0" width="900" height="110" viewBox="0 0 900 110" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M0,55 C37.5,15 75,95 112.5,55 C150,15 187.5,95 225,55 C262.5,15 300,95 337.5,55 C375,15 412.5,95 450,55 C487.5,15 525,95 562.5,55 C600,15 637.5,95 675,55 C712.5,15 750,95 787.5,55 C825,15 862.5,95 900,55" stroke="url(#waveGradA)" stroke-width="2" fill="none" filter="url(#waveGlow)"/>
-            </svg>
-            <svg class="wave-track-a flex-shrink-0" width="900" height="110" viewBox="0 0 900 110" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M0,55 C37.5,15 75,95 112.5,55 C150,15 187.5,95 225,55 C262.5,15 300,95 337.5,55 C375,15 412.5,95 450,55 C487.5,15 525,95 562.5,55 C600,15 637.5,95 675,55 C712.5,15 750,95 787.5,55 C825,15 862.5,95 900,55" stroke="url(#waveGradA)" stroke-width="2" fill="none" filter="url(#waveGlow)"/>
-            </svg>
-        </div>
-        <div class="absolute inset-x-0 top-[92%] h-24 opacity-[0.13] flex">
-            <svg class="wave-track-b flex-shrink-0" width="1100" height="110" viewBox="0 0 1100 110" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M0,55 C45,90 90,20 135,55 C180,90 225,20 270,55 C315,90 360,20 405,55 C450,90 495,20 540,55 C585,90 630,20 675,55 C720,90 765,20 810,55 C855,90 900,20 945,55 C990,90 1035,20 1080,55 C1100,60 1100,55 1100,55" stroke="url(#waveGradB)" stroke-width="2" fill="none" filter="url(#waveGlow)"/>
-            </svg>
-            <svg class="wave-track-b flex-shrink-0" width="1100" height="110" viewBox="0 0 1100 110" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M0,55 C45,90 90,20 135,55 C180,90 225,20 270,55 C315,90 360,20 405,55 C450,90 495,20 540,55 C585,90 630,20 675,55 C720,90 765,20 810,55 C855,90 900,20 945,55 C990,90 1035,20 1080,55 C1100,60 1100,55 1100,55" stroke="url(#waveGradB)" stroke-width="2" fill="none" filter="url(#waveGlow)"/>
-            </svg>
-        </div>
-        <span class="spark" style="left:12%; animation-delay:0s;"></span>
-        <span class="spark" style="left:34%; animation-delay:1.8s;"></span>
-        <span class="spark" style="left:67%; animation-delay:0.9s;"></span>
-        <span class="spark" style="left:88%; animation-delay:2.7s;"></span>
-    </div>
-
-    <!-- Navbar -->
-    <nav class="fixed w-full z-50 bg-slate-900/90 backdrop-blur-md border-b border-slate-800">
+    <nav class="fixed w-full z-50 bg-slate-900/80 backdrop-blur-lg border-b border-slate-800/50 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
                 <!-- Logo -->
-                <div class="flex-shrink-0 font-bold text-xl tracking-tight flex items-center gap-2">
+                <div class="flex-shrink-0 font-extrabold text-xl tracking-tight flex items-center gap-2">
                     <i data-lucide="zap" class="text-sky-400 w-6 h-6"></i> Ilgın Akkoyun
                 </div>
                 
-                <div class="hidden lg:flex items-center space-x-5">
+                <div class="hidden lg:flex items-center space-x-6">
                     <a href="#hakkimda" class="hover:text-sky-400 text-sm font-medium transition-colors lang-tr">Hakkımda</a>
                     <a href="#hakkimda" class="hover:text-sky-400 text-sm font-medium transition-colors lang-en hidden-lang">About</a>
                     
@@ -136,9 +75,6 @@
                     <a href="#projeler" class="hover:text-sky-400 text-sm font-medium transition-colors lang-tr">Projeler</a>
                     <a href="#projeler" class="hover:text-sky-400 text-sm font-medium transition-colors lang-en hidden-lang">Projects</a>
 
-                    <a href="#yayinlarim" class="hover:text-sky-400 text-sm font-medium transition-colors lang-tr">Yayınlarım</a>
-                    <a href="#yayinlarim" class="hover:text-sky-400 text-sm font-medium transition-colors lang-en hidden-lang">Publications</a>
-
                     <a href="#konferanslar" class="hover:text-sky-400 text-sm font-medium transition-colors lang-tr">Etkinlikler</a>
                     <a href="#konferanslar" class="hover:text-sky-400 text-sm font-medium transition-colors lang-en hidden-lang">Events</a>
                     
@@ -146,8 +82,8 @@
                         <i data-lucide="book-open" class="w-4 h-4"></i> <span class="lang-tr">Enerji Günlükleri</span><span class="lang-en hidden-lang">Energy Diaries</span>
                     </button>
 
-                    <a href="#iletisim" class="bg-sky-500 hover:bg-sky-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors lang-tr">İletişim</a>
-                    <a href="#iletisim" class="bg-sky-500 hover:bg-sky-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors lang-en hidden-lang">Contact</a>
+                    <a href="#iletisim" class="bg-sky-500 hover:bg-sky-400 text-white px-5 py-2 rounded-md text-sm font-semibold transition-colors shadow-lg shadow-sky-500/20 lang-tr">İletişim</a>
+                    <a href="#iletisim" class="bg-sky-500 hover:bg-sky-400 text-white px-5 py-2 rounded-md text-sm font-semibold transition-colors shadow-lg shadow-sky-500/20 lang-en hidden-lang">Contact</a>
                     
                     <button type="button" onclick="toggleLanguage()" class="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-full text-xs font-bold border border-slate-600 transition-colors">
                         <i data-lucide="globe" class="w-4 h-4 text-sky-400"></i> <span id="current-lang">EN</span>
@@ -157,85 +93,96 @@
         </div>
     </nav>
 
-    <!-- Şebeke Frekansı Widget (Canlı Simülasyon) -->
-    <div id="freq-widget" class="fixed bottom-3 right-3 sm:bottom-4 sm:right-4 z-40 bg-slate-900/90 backdrop-blur-md border border-slate-700 rounded-xl shadow-xl px-3 py-2 w-28 sm:w-32 select-none">
-        <div class="flex items-center justify-between mb-1 cursor-pointer gap-1" onclick="toggleFreqWidget()">
-            <div class="flex items-center gap-1.5 min-w-0">
-                <span class="freq-live-dot w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0"></span>
-                <span class="text-[7px] font-bold uppercase tracking-wider text-slate-400 truncate lang-tr">Şebeke Hz</span>
-                <span class="text-[7px] font-bold uppercase tracking-wider text-slate-400 truncate lang-en hidden-lang">Grid Hz</span>
-            </div>
-            <i data-lucide="chevron-down" id="freq-toggle-icon" class="w-3 h-3 text-slate-500 flex-shrink-0 transition-transform"></i>
+    <section id="hakkimda" class="pt-32 pb-16 md:pt-40 md:pb-24 px-4 relative overflow-hidden flex items-center min-h-[90vh]">
+        
+        <!-- Animated Transformer Background -->
+        <div class="absolute inset-0 z-0 flex items-end justify-center opacity-[0.15] pointer-events-none overflow-hidden">
+            <svg viewBox="0 0 1000 600" preserveAspectRatio="xMidYMax meet" class="w-full h-full min-w-[800px]">
+                <!-- Sine Waves (Frequencies) emitting from bushings -->
+                <g stroke="currentColor" fill="none" stroke-width="2" class="text-sky-400">
+                    <path d="M 400,250 C 420,150 480,150 500,50 C 520,-50 580,-50 600,-150" class="signal-wave wave-delay-1" />
+                    <path d="M 500,200 C 520,100 580,100 600,0 C 620,-100 680,-100 700,-200" class="signal-wave wave-delay-2" />
+                    <path d="M 600,250 C 620,150 680,150 700,50 C 720,-50 780,-50 800,-150" class="signal-wave wave-delay-3" />
+                    <path d="M 400,250 C 380,150 320,150 300,50 C 280,-50 220,-50 200,-150" class="signal-wave wave-delay-2" />
+                    <path d="M 500,200 C 480,100 420,100 400,0 C 380,-100 320,-100 300,-200" class="signal-wave wave-delay-3" />
+                    <path d="M 600,250 C 580,150 520,150 500,50 C 480,-50 420,-50 400,-150" class="signal-wave wave-delay-1" />
+                </g>
+                
+                <!-- Power Transformer Illustration -->
+                <g stroke="currentColor" stroke-width="4" fill="none" class="text-slate-500">
+                    <!-- Main Tank -->
+                    <rect x="350" y="350" width="300" height="200" rx="10"/>
+                    <!-- Radiators -->
+                    <path d="M 350,380 L 280,380 M 350,420 L 280,420 M 350,460 L 280,460 M 350,500 L 280,500" stroke-width="6"/>
+                    <path d="M 650,380 L 720,380 M 650,420 L 720,420 M 650,460 L 720,460 M 650,500 L 720,500" stroke-width="6"/>
+                    <!-- Bushings -->
+                    <path d="M 400,350 L 400,250 M 380,330 L 420,330 M 385,310 L 415,310 M 390,290 L 410,290 M 395,270 L 405,270" class="text-slate-400"/>
+                    <path d="M 500,350 L 500,200 M 470,330 L 530,330 M 475,310 L 525,310 M 480,290 L 520,290 M 485,270 L 515,270 M 490,250 L 510,250 M 495,230 L 505,230" class="text-slate-400"/>
+                    <path d="M 600,350 L 600,250 M 580,330 L 620,330 M 585,310 L 615,310 M 590,290 L 610,290 M 595,270 L 605,270" class="text-slate-400"/>
+                    <!-- Tank details -->
+                    <line x1="400" y1="350" x2="400" y2="550" stroke-width="2" class="opacity-50"/>
+                    <line x1="500" y1="350" x2="500" y2="550" stroke-width="2" class="opacity-50"/>
+                    <line x1="600" y1="350" x2="600" y2="550" stroke-width="2" class="opacity-50"/>
+                </g>
+            </svg>
         </div>
-        <div class="flex items-end justify-between">
-            <span id="freq-value" class="text-base font-black text-white tabular-nums">50.00</span>
-            <span class="text-[8px] font-bold text-slate-500 mb-0.5">Hz</span>
-        </div>
-        <div class="freq-body">
-            <canvas id="freq-canvas" width="140" height="24" class="w-full h-6 mt-1 rounded"></canvas>
-            <p class="text-[6px] text-slate-500 mt-1 leading-snug lang-tr">Simülasyon · TEİAŞ 49,8–50,2 Hz bandı</p>
-            <p class="text-[6px] text-slate-500 mt-1 leading-snug lang-en hidden-lang">Simulation · TEİAŞ's 49.8–50.2 Hz band</p>
-        </div>
-    </div>
 
-    <!-- Hero Section -->
-    <section id="hakkimda" class="pt-32 pb-16 md:pt-40 md:pb-20 px-4 relative overflow-hidden">
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-sky-600/10 rounded-full blur-3xl -z-10"></div>
-        <div class="max-w-7xl mx-auto">
+        <div class="max-w-7xl mx-auto relative z-10 w-full">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
                 
-                <div class="lg:col-span-8 flex flex-col items-start text-left">
-                    <div class="inline-flex items-center gap-2 p-2 px-4 rounded-full bg-slate-800 border border-slate-700 text-sky-400 text-sm font-semibold mb-6">
+                <div class="lg:col-span-8 flex flex-col items-start text-left order-2 lg:order-1">
+                    <div class="inline-flex items-center gap-2 p-2 px-4 rounded-full bg-slate-800/80 backdrop-blur-sm border border-slate-700 text-sky-400 text-sm font-semibold mb-6">
                         <i data-lucide="map-pin" class="w-4 h-4"></i> <span class="lang-tr">İstanbul, Türkiye</span><span class="lang-en hidden-lang">Istanbul, Turkey</span>
                     </div>
                     
-                    <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mb-6 lang-tr">
+                    <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mb-4 lang-tr">
                         Sürdürülebilir Bir Gelecek İçin <br class="hidden md:block" />
                         <span class="gradient-text">Mühendislik Vizyonu.</span>
                     </h1>
-                    <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mb-6 lang-en hidden-lang">
+                    <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mb-4 lang-en hidden-lang">
                         Engineering Vision For a <br class="hidden md:block" />
                         <span class="gradient-text">Sustainable Future.</span>
                     </h1>
 
-                    <p class="text-lg md:text-xl text-slate-300 mb-6 max-w-3xl leading-relaxed lang-tr">
-                        Merhaba, ben <strong>Ilgın</strong>. Yıldız Teknik Üniversitesi'nde Elektrik Mühendisliği okuyorum, önümüzdeki dönem 4. sınıfa geçiyorum. Kendimi keşfetme sürecinde araştırıp öğrendiğim bilgilerin kalıcı olması ve yapmak istediklerimi paylaşabilmem adına bu siteyi kurmaya karar verdim. Her yeni deneyimle nereye doğru gitmek istediğim biraz daha netleşiyor; şu an beni en çok heyecanlandıran konular şebeke optimizasyonu ve enerji depolama tarafı.
-                    </p>
-                    <p class="text-lg md:text-xl text-slate-300 mb-6 max-w-3xl leading-relaxed lang-en hidden-lang">
-                        Hi, I'm <strong>Ilgın</strong>. I study Electrical Engineering at Yıldız Technical University, moving into my 4th year now. I decided to build this site so that what I research and learn along the way could stay somewhere lasting, and so I could share what I want to do. Each new experience makes it a little clearer where I want to head; grid optimization and energy storage are what excite me most right now.
-                    </p>
-
-                    <div class="mb-8 w-full">
-                        <p class="text-xs text-slate-500 font-bold mb-3 uppercase tracking-widest lang-tr">İncelemenizi Tavsiye Ettiğim & Takip Ettiğim Kaynaklar:</p>
-                        <p class="text-xs text-slate-500 font-bold mb-3 uppercase tracking-widest lang-en hidden-lang">Resources I Follow & Recommend Analyzing:</p>
-                        <div class="flex flex-wrap gap-2">
-                            <a href="https://shura.org.tr/" target="_blank" class="text-xs font-bold text-sky-400 bg-slate-800 border border-slate-700 px-3 py-1.5 rounded hover:bg-slate-700 transition-colors">SHURA</a>
-                            <a href="https://www.iea.org/" target="_blank" class="text-xs font-bold text-sky-400 bg-slate-800 border border-slate-700 px-3 py-1.5 rounded hover:bg-slate-700 transition-colors">IEA</a>
-                            <a href="https://www.worldenergy.org/" target="_blank" class="text-xs font-bold text-sky-400 bg-slate-800 border border-slate-700 px-3 py-1.5 rounded hover:bg-slate-700 transition-colors">World Energy Council</a>
-                            <a href="https://www.ttgv.org.tr/" target="_blank" class="text-xs font-bold text-sky-400 bg-slate-800 border border-slate-700 px-3 py-1.5 rounded hover:bg-slate-700 transition-colors">TTGV</a>
-                            <a href="https://www.teias.gov.tr/" target="_blank" class="text-xs font-bold text-sky-400 bg-slate-800 border border-slate-700 px-3 py-1.5 rounded hover:bg-slate-700 transition-colors">TEİAŞ</a>
-                            <a href="https://seffaflik.epias.com.tr/" target="_blank" class="text-xs font-bold text-sky-400 bg-slate-800 border border-slate-700 px-3 py-1.5 rounded hover:bg-slate-700 transition-colors">EPİAŞ</a>
-                            <a href="https://www.epdk.gov.tr/" target="_blank" class="text-xs font-bold text-sky-400 bg-slate-800 border border-slate-700 px-3 py-1.5 rounded hover:bg-slate-700 transition-colors">EPDK</a>
-                            <a href="https://tesab.org.tr/" target="_blank" class="text-xs font-bold text-sky-400 bg-slate-800 border border-slate-700 px-3 py-1.5 rounded hover:bg-slate-700 transition-colors">TESAB</a>
-                            <a href="https://edider.org.tr/" target="_blank" class="text-xs font-bold text-sky-400 bg-slate-800 border border-slate-700 px-3 py-1.5 rounded hover:bg-slate-700 transition-colors">EDİDER Raporları</a>
-                        </div>
+                    <div class="flex flex-wrap gap-3 mb-6">
+                        <span class="focus-badge px-4 py-1.5 bg-sky-500/10 border border-sky-500/30 text-sky-400 rounded-full text-xs font-bold tracking-wide flex items-center">
+                            <i data-lucide="network" class="w-3.5 h-3.5 mr-1.5"></i> Şebeke Optimizasyonu
+                        </span>
+                        <span class="focus-badge px-4 py-1.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-full text-xs font-bold tracking-wide flex items-center">
+                            <i data-lucide="sun" class="w-3.5 h-3.5 mr-1.5"></i> Yenilenebilir Enerji
+                        </span>
+                        <span class="focus-badge px-4 py-1.5 bg-purple-500/10 border border-purple-500/30 text-purple-400 rounded-full text-xs font-bold tracking-wide flex items-center">
+                            <i data-lucide="leaf" class="w-3.5 h-3.5 mr-1.5"></i> Dekarbonizasyon
+                        </span>
+                        <span class="focus-badge px-4 py-1.5 bg-orange-500/10 border border-orange-500/30 text-orange-400 rounded-full text-xs font-bold tracking-wide flex items-center">
+                            <i data-lucide="battery-charging" class="w-3.5 h-3.5 mr-1.5"></i> Enerji Depolama (BESS)
+                        </span>
                     </div>
 
+                    <p class="text-lg md:text-xl text-slate-300 mb-8 max-w-3xl leading-relaxed font-light lang-tr">
+                        Merhaba, ben <strong>Ilgın Akkoyun</strong>. Enerjinin gücünü analitik zekayla birleştirerek şebeke entegrasyonu ve depolama teknolojilerine odaklanan bir mühendis adayıyım. Yıldız Teknik Üniversitesi 3. sınıf Elektrik Mühendisliği öğrencisiyim. Akademik disiplinimi GE, AKSA BESS ve Enersys gibi sektöre yön veren markalardaki stajlarımla saha tecrübesine dönüştürüyor; değişimi sadece izleyen değil, tasarlayan olmak için çalışıyorum.
+                    </p>
+                    <p class="text-lg md:text-xl text-slate-300 mb-8 max-w-3xl leading-relaxed font-light lang-en hidden-lang">
+                        Hello, I am <strong>Ilgın Akkoyun</strong>. I am an engineering candidate focusing on grid integration and storage technologies by combining the power of energy with analytical intelligence. As a 3rd-year Electrical Engineering student at Yıldız Technical University, I turn my academic discipline into field experience through internships at industry-leading brands like GE, AKSA BESS, and Enersys.
+                    </p>
+
                     <div class="flex flex-wrap items-center gap-4 w-full">
-                        <a href="#projeler" class="bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 text-center">
-                            <span class="lang-tr">Projelerimi İncele</span>
+                        <a href="#projeler" class="bg-sky-500 hover:bg-sky-400 text-white font-bold py-3 px-8 rounded-xl transition-all duration-300 shadow-lg shadow-sky-500/25 flex items-center">
+                            <span class="lang-tr">Projeleri İncele</span>
                             <span class="lang-en hidden-lang">View Projects</span>
+                            <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>
                         </a>
-                        <button type="button" onclick="openModal('modal-qr')" class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 px-6 rounded-lg border border-slate-700 transition-all duration-300 flex items-center justify-center">
+                        <button type="button" onclick="openModal('modal-qr')" class="bg-slate-800/80 backdrop-blur hover:bg-slate-700 text-white font-bold py-3 px-6 rounded-xl border border-slate-600 transition-all duration-300 flex items-center justify-center">
                             <i data-lucide="qr-code" class="w-5 h-5 mr-2 text-sky-400"></i> 
                             <span class="lang-tr">CV (QR)</span><span class="lang-en hidden-lang">CV (QR)</span>
                         </button>
                     </div>
                 </div>
 
-                <div class="lg:col-span-4 flex justify-center lg:justify-end">
-                    <div class="relative w-64 h-64 md:w-80 md:h-80 rounded-full profile-glow border-4 border-slate-700 overflow-hidden bg-slate-800 flex items-center justify-center">
-                        <img src="profile.jpg" alt="Ilgın Akkoyun" class="w-full h-full object-cover">
+                <div class="lg:col-span-4 flex justify-center lg:justify-end order-1 lg:order-2">
+                    <div class="relative w-48 h-48 md:w-72 md:h-72 rounded-full profile-glow border-4 border-slate-700/50 overflow-hidden bg-slate-800 flex items-center justify-center z-20">
+                        <!-- LinkedIn veya kendi profil fotoğrafı URL'nizi src içine ekleyin -->
+                        <img src="https://ui-avatars.com/api/?name=Ilgin+Akkoyun&background=0ea5e9&color=fff&size=512" alt="Ilgın Akkoyun" class="w-full h-full object-cover">
                     </div>
                 </div>
 
@@ -243,216 +190,167 @@
         </div>
     </section>
 
-    <!-- Deneyimler -->
-    <section id="deneyimler" class="py-20 bg-slate-900/85 border-t border-slate-800">
+    <section id="deneyimler" class="py-24 bg-slate-900 border-t border-slate-800 relative">
         <div class="max-w-7xl mx-auto px-4">
-            <h2 class="text-3xl font-bold mb-12 text-center text-white">
-                <span class="lang-tr">Profesyonel <span class="text-sky-500">Staj & Deneyimler</span></span>
-                <span class="lang-en hidden-lang">Professional <span class="text-sky-500">Internships & Experience</span></span>
-            </h2>
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
+                    <span class="lang-tr">Profesyonel <span class="text-sky-500">Staj & Deneyimler</span></span>
+                    <span class="lang-en hidden-lang">Professional <span class="text-sky-500">Internships & Experience</span></span>
+                </h2>
+                <div class="w-24 h-1 bg-sky-500 mx-auto mt-4 rounded-full"></div>
+            </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <!-- AKSA BESS -->
-                <div onclick="openModal('modal-aksabess')" class="card-hover cursor-pointer bg-slate-800 p-6 rounded-xl border border-slate-700 border-t-4 border-t-sky-500 relative overflow-hidden text-left flex flex-col group">
-                    <div class="absolute -right-4 -top-4 opacity-5 pointer-events-none text-sky-500"><i data-lucide="battery-medium" class="w-48 h-48"></i></div>
-                    <div class="text-sky-400 text-xs font-bold mb-3 uppercase tracking-wider">
+                <div class="card-hover bg-slate-800/50 backdrop-blur p-8 rounded-2xl border border-slate-700 border-t-4 border-t-sky-500 relative overflow-hidden flex flex-col">
+                    <div class="absolute -right-6 -top-6 opacity-[0.03] pointer-events-none text-sky-500"><i data-lucide="battery-charging" class="w-64 h-64"></i></div>
+                    <div class="text-sky-400 text-xs font-bold mb-4 uppercase tracking-widest">
                         <span class="lang-tr">Temmuz - Ağustos 2026</span>
                         <span class="lang-en hidden-lang">July - August 2026</span>
                     </div>
-                    <h3 class="text-xl font-bold mb-1 text-white group-hover:text-sky-400 transition-colors">AKSA BESS</h3>
-                    <p class="text-slate-300 font-medium mb-4 lang-tr">Yeni Enerji Teknolojileri Stajyeri</p>
-                    <p class="text-slate-300 font-medium mb-4 lang-en hidden-lang">New Energy Technologies Intern</p>
+                    <h3 class="text-2xl font-bold mb-1 text-white">AKSA BESS</h3>
+                    <p class="text-slate-300 font-medium mb-5 lang-tr">Yeni Enerji Teknolojileri Stajyeri</p>
+                    <p class="text-slate-300 font-medium mb-5 lang-en hidden-lang">New Energy Technologies Intern</p>
                     <p class="text-sm text-slate-400 leading-relaxed lang-tr flex-1">Batarya Enerji Depolama Sistemleri (BESS) biriminde tek hat şemalarının incelenmesi, CAPEX hesaplamaları ve şebeke optimizasyon süreçleri üzerine uygulamalı çalışmalar.</p>
                     <p class="text-sm text-slate-400 leading-relaxed lang-en hidden-lang flex-1">Practical studies on analyzing single-line diagrams, CAPEX calculations, and grid optimization processes within the Battery Energy Storage Systems (BESS) department.</p>
-                    <div class="text-sky-400 text-xs font-bold flex items-center mt-3 lang-tr"><i data-lucide="zoom-in" class="w-4 h-4 mr-1"></i> Detayları İncele</div>
-                    <div class="text-sky-400 text-xs font-bold flex items-center mt-3 lang-en hidden-lang"><i data-lucide="zoom-in" class="w-4 h-4 mr-1"></i> View Details</div>
                 </div>
 
                 <!-- GE VERNOVA -->
-                <div class="card-hover bg-slate-800 p-6 rounded-xl border border-slate-700 border-t-4 border-t-emerald-500 relative overflow-hidden text-left flex flex-col">
-                    <div class="absolute -right-4 -top-4 opacity-5 pointer-events-none text-emerald-500"><i data-lucide="factory" class="w-48 h-48"></i></div>
-                    <div class="text-emerald-400 text-xs font-bold mb-3 uppercase tracking-wider">
+                <div class="card-hover bg-slate-800/50 backdrop-blur p-8 rounded-2xl border border-slate-700 border-t-4 border-t-emerald-500 relative overflow-hidden flex flex-col">
+                    <div class="absolute -right-6 -top-6 opacity-[0.03] pointer-events-none text-emerald-500"><i data-lucide="factory" class="w-64 h-64"></i></div>
+                    <div class="text-emerald-400 text-xs font-bold mb-4 uppercase tracking-widest">
                         <span class="lang-tr">Haziran - Ağustos 2025</span>
                         <span class="lang-en hidden-lang">June - August 2025</span>
                     </div>
-                    <h3 class="text-xl font-bold mb-1 text-white">General Electric (GE) Vernova</h3>
-                    <p class="text-slate-300 font-medium mb-4 lang-tr">Ar-Ge Elektrik Dizayn Stajyeri <span class="text-xs text-slate-500">(Gebze)</span></p>
-                    <p class="text-slate-300 font-medium mb-4 lang-en hidden-lang">R&D Electrical Design Intern <span class="text-xs text-slate-500">(Gebze)</span></p>
-                    <p class="text-sm text-slate-400 leading-relaxed lang-tr flex-1">Küresel standartlarda enerji ekipmanlarının (transformatör vb.) Ar-Ge süreçlerinde elektriksel tasarım ve analiz deneyimi.</p>
+                    <h3 class="text-2xl font-bold mb-1 text-white">GE Vernova</h3>
+                    <p class="text-slate-300 font-medium mb-5 lang-tr">Ar-Ge Elektrik Dizayn Stajyeri</p>
+                    <p class="text-slate-300 font-medium mb-5 lang-en hidden-lang">R&D Electrical Design Intern</p>
+                    <p class="text-sm text-slate-400 leading-relaxed lang-tr flex-1">Küresel standartlarda enerji ekipmanlarının (güç transformatörleri vb.) Ar-Ge süreçlerinde elektriksel tasarım, boyutlandırma ve analiz deneyimi.</p>
                     <p class="text-sm text-slate-400 leading-relaxed lang-en hidden-lang flex-1">Electrical design and analysis experience during the R&D processes of energy equipment at global standards.</p>
                 </div>
 
                 <!-- ENERSYS -->
-                <div class="card-hover bg-slate-800 p-6 rounded-xl border border-slate-700 border-t-4 border-t-orange-500 relative overflow-hidden text-left flex flex-col">
-                    <div class="absolute -right-4 -top-4 opacity-5 pointer-events-none text-orange-500"><i data-lucide="battery" class="w-48 h-48"></i></div>
-                    <div class="text-orange-400 text-xs font-bold mb-3 uppercase tracking-wider">
+                <div class="card-hover bg-slate-800/50 backdrop-blur p-8 rounded-2xl border border-slate-700 border-t-4 border-t-orange-500 relative overflow-hidden flex flex-col">
+                    <div class="absolute -right-6 -top-6 opacity-[0.03] pointer-events-none text-orange-500"><i data-lucide="zap" class="w-64 h-64"></i></div>
+                    <div class="text-orange-400 text-xs font-bold mb-4 uppercase tracking-widest">
                         <span class="lang-tr">Temmuz - Eylül 2024</span>
                         <span class="lang-en hidden-lang">July - September 2024</span>
                     </div>
-                    <h3 class="text-xl font-bold mb-1 text-white">ENERSYS Akü Batarya</h3>
-                    <p class="text-slate-300 font-medium mb-4 lang-tr">Gönüllü Stajyer</p>
-                    <p class="text-slate-300 font-medium mb-4 lang-en hidden-lang">Volunteer Intern</p>
-                    <p class="text-sm text-slate-400 leading-relaxed lang-tr flex-1">Endüstriyel akü ve enerji depolama çözümlerinde global lider olan firmada batarya teknolojileri üzerine saha ve ofis deneyimi.</p>
+                    <h3 class="text-2xl font-bold mb-1 text-white">ENERSYS Akü</h3>
+                    <p class="text-slate-300 font-medium mb-5 lang-tr">Gönüllü Stajyer</p>
+                    <p class="text-slate-300 font-medium mb-5 lang-en hidden-lang">Volunteer Intern</p>
+                    <p class="text-sm text-slate-400 leading-relaxed lang-tr flex-1">Endüstriyel akü ve depolama çözümlerinde global lider olan firmada kurşun-asit ve lityum batarya teknolojileri üzerine saha ve üretim ofisi deneyimi.</p>
                     <p class="text-sm text-slate-400 leading-relaxed lang-en hidden-lang flex-1">Field and office experience on battery technologies in the global leader company for industrial battery solutions.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Projeler & Ödevler -->
-    <section id="projeler" class="py-20 bg-slate-800/30 border-y border-slate-800">
+    <section id="projeler" class="py-24 bg-slate-800/30 border-y border-slate-800">
         <div class="max-w-7xl mx-auto px-4">
-            <h2 class="text-3xl font-bold mb-4 text-center text-white">
-                <span class="lang-tr">Akademik Ödevler & <span class="text-sky-500">Projeler</span></span>
-                <span class="lang-en hidden-lang">Academic Assignments & <span class="text-sky-500">Projects</span></span>
-            </h2>
-            <p class="text-center text-slate-400 mb-12 max-w-2xl mx-auto lang-tr">Matematiksel analizleri ve mühendislik simülasyonlarını kapsayan, tıklayarak detaylarını görebileceğiniz çalışmalarım.</p>
-            <p class="text-center text-slate-400 mb-12 max-w-2xl mx-auto lang-en hidden-lang">My academic studies covering mathematical analysis and engineering simulations. Click to see details.</p>
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
+                    <span class="lang-tr">Akademik Ödevler & <span class="text-sky-500">Projeler</span></span>
+                    <span class="lang-en hidden-lang">Academic Assignments & <span class="text-sky-500">Projects</span></span>
+                </h2>
+                <div class="w-24 h-1 bg-sky-500 mx-auto mt-4 mb-6 rounded-full"></div>
+                <p class="text-slate-400 max-w-2xl mx-auto text-lg lang-tr">Mühendislik hesaplamalarını, kodlama pratiklerini ve PSIM/AutoCAD gibi simülasyonları içeren projelerim. Detaylar için kartlara tıklayın.</p>
+                <p class="text-slate-400 max-w-2xl mx-auto text-lg lang-en hidden-lang">My projects involving engineering calculations, coding practices, and PSIM/AutoCAD simulations. Click cards for details.</p>
+            </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 
-                <!-- Güç Elektroniği 1 -->
-                <div onclick="openModal('modal-guc1')" class="card-hover cursor-pointer bg-slate-800 rounded-xl border border-slate-700 flex flex-col relative group text-left">
-                    <div class="p-6 h-full flex flex-col">
-                        <div class="flex flex-wrap items-center gap-2 mb-4">
-                            <span class="px-2 py-1 bg-purple-500/20 text-purple-300 text-xs font-bold rounded">PSIM</span>
-                            <span class="px-2 py-1 bg-slate-700 text-slate-300 text-xs font-bold rounded lang-tr">Doğrultucu</span>
-                            <span class="px-2 py-1 bg-slate-700 text-slate-300 text-xs font-bold rounded lang-en hidden-lang">Rectifier</span>
+                <!-- Kablo Kesit Excelim -->
+                <div onclick="openModal('modal-kablo')" class="card-hover cursor-pointer bg-slate-800/80 rounded-2xl border border-slate-700 flex flex-col relative group text-left shadow-lg">
+                    <div class="p-8 h-full flex flex-col">
+                        <div class="flex flex-wrap items-center gap-2 mb-5">
+                            <span class="px-3 py-1 bg-green-500/20 border border-green-500/30 text-green-400 text-xs font-bold rounded-full">Excel / VBA</span>
                         </div>
-                        <h3 class="text-lg font-bold mb-3 text-white group-hover:text-purple-400 transition-colors lang-tr">Güç Elektroniği 1: Tam Dalga Kontrollü Doğrultucu</h3>
-                        <h3 class="text-lg font-bold mb-3 text-white group-hover:text-purple-400 transition-colors lang-en hidden-lang">Power Electronics 1: Full-Wave Controlled Rectifier</h3>
-                        <p class="text-slate-400 text-sm leading-relaxed mb-4 flex-1 lang-tr">220V AC girişli devrede tetikleme açısı (30°) analizi, harmonik bozulma (THD) ve giriş/çıkış gücü hesaplamaları.</p>
-                        <p class="text-slate-400 text-sm leading-relaxed mb-4 flex-1 lang-en hidden-lang">Analysis of firing angle (30°), harmonic distortion (THD), and power calculations in a 220V AC input circuit.</p>
-                        <div class="text-purple-400 text-xs font-bold flex items-center lang-tr"><i data-lucide="zoom-in" class="w-4 h-4 mr-1"></i> Raporu İncele</div>
-                        <div class="text-purple-400 text-xs font-bold flex items-center lang-en hidden-lang"><i data-lucide="zoom-in" class="w-4 h-4 mr-1"></i> View Report</div>
+                        <h3 class="text-xl font-bold mb-3 text-white group-hover:text-green-400 transition-colors lang-tr">Kablo Kesit ve Gerilim Düşümü Otomasyonu</h3>
+                        <h3 class="text-xl font-bold mb-3 text-white group-hover:text-green-400 transition-colors lang-en hidden-lang">Cable Sizing and Voltage Drop Tool</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed mb-6 flex-1 lang-tr">Alçak ve orta gerilim tesisleri için akım taşıma kapasitesi ve %e gerilim düşümü hesaplamalarını standartlara uygun şekilde otomatize eden Excel modülü.</p>
+                        <p class="text-slate-400 text-sm leading-relaxed mb-6 flex-1 lang-en hidden-lang">Comprehensive Excel module that automates current carrying capacity and voltage drop calculations for LV and MV installations.</p>
+                        <div class="text-green-400 text-sm font-bold flex items-center lang-tr"><i data-lucide="file-spreadsheet" class="w-5 h-5 mr-2"></i> Detayları İncele</div>
+                        <div class="text-green-400 text-sm font-bold flex items-center lang-en hidden-lang"><i data-lucide="file-spreadsheet" class="w-5 h-5 mr-2"></i> View Details</div>
+                    </div>
+                </div>
+
+                <!-- Güç Elektroniği 1 -->
+                <div onclick="openModal('modal-guc1')" class="card-hover cursor-pointer bg-slate-800/80 rounded-2xl border border-slate-700 flex flex-col relative group text-left shadow-lg">
+                    <div class="p-8 h-full flex flex-col">
+                        <div class="flex flex-wrap items-center gap-2 mb-5">
+                            <span class="px-3 py-1 bg-purple-500/20 border border-purple-500/30 text-purple-300 text-xs font-bold rounded-full">PSIM</span>
+                            <span class="px-3 py-1 bg-slate-700 border border-slate-600 text-slate-300 text-xs font-bold rounded-full">Doğrultucu</span>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3 text-white group-hover:text-purple-400 transition-colors lang-tr">Güç Elektroniği 1: Tam Dalga Kontrollü Doğrultucu</h3>
+                        <h3 class="text-xl font-bold mb-3 text-white group-hover:text-purple-400 transition-colors lang-en hidden-lang">Power Electronics 1: Full-Wave Controlled Rectifier</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed mb-6 flex-1 lang-tr">220V AC girişli devrede tetikleme açısı (30°) analizi, harmonik bozulma (THD) ve giriş/çıkış gücü hesaplamaları.</p>
+                        <p class="text-slate-400 text-sm leading-relaxed mb-6 flex-1 lang-en hidden-lang">Analysis of firing angle (30°), harmonic distortion (THD), and power calculations in a 220V AC input circuit.</p>
+                        <div class="text-purple-400 text-sm font-bold flex items-center lang-tr"><i data-lucide="activity" class="w-5 h-5 mr-2"></i> Raporu İncele</div>
+                        <div class="text-purple-400 text-sm font-bold flex items-center lang-en hidden-lang"><i data-lucide="activity" class="w-5 h-5 mr-2"></i> View Report</div>
                     </div>
                 </div>
 
                 <!-- Güç Elektroniği 2 -->
-                <div onclick="openModal('modal-guc2')" class="card-hover cursor-pointer bg-slate-800 rounded-xl border border-slate-700 flex flex-col relative group text-left">
-                    <div class="p-6 h-full flex flex-col">
-                        <div class="flex flex-wrap items-center gap-2 mb-4">
-                            <span class="px-2 py-1 bg-pink-500/20 text-pink-300 text-xs font-bold rounded">DC-DC</span>
-                            <span class="px-2 py-1 bg-slate-700 text-slate-300 text-xs font-bold rounded lang-tr">CCM / DCM</span>
-                            <span class="px-2 py-1 bg-slate-700 text-slate-300 text-xs font-bold rounded lang-en hidden-lang">CCM / DCM</span>
+                <div onclick="openModal('modal-guc2')" class="card-hover cursor-pointer bg-slate-800/80 rounded-2xl border border-slate-700 flex flex-col relative group text-left shadow-lg">
+                    <div class="p-8 h-full flex flex-col">
+                        <div class="flex flex-wrap items-center gap-2 mb-5">
+                            <span class="px-3 py-1 bg-pink-500/20 border border-pink-500/30 text-pink-300 text-xs font-bold rounded-full">DC-DC</span>
+                            <span class="px-3 py-1 bg-slate-700 border border-slate-600 text-slate-300 text-xs font-bold rounded-full">CCM / DCM</span>
                         </div>
-                        <h3 class="text-lg font-bold mb-3 text-white group-hover:text-pink-400 transition-colors lang-tr">Güç Elektroniği 2: Konvertör Tasarımı</h3>
-                        <h3 class="text-lg font-bold mb-3 text-white group-hover:text-pink-400 transition-colors lang-en hidden-lang">Power Electronics 2: Converter Design</h3>
-                        <p class="text-slate-400 text-sm leading-relaxed mb-4 flex-1 lang-tr">400V çıkışlı çevirici için Sürekli (CCM) ve Kesintili (DCM) akım modu L-C parametrelerinin hesaplanması ve doluluk oranı (Duty Cycle) analizleri.</p>
-                        <p class="text-slate-400 text-sm leading-relaxed mb-4 flex-1 lang-en hidden-lang">Calculation of Continuous (CCM) and Discontinuous (DCM) mode L-C parameters and duty cycle analysis for a 400V output converter.</p>
-                        <div class="text-pink-400 text-xs font-bold flex items-center lang-tr"><i data-lucide="zoom-in" class="w-4 h-4 mr-1"></i> Raporu İncele</div>
-                        <div class="text-pink-400 text-xs font-bold flex items-center lang-en hidden-lang"><i data-lucide="zoom-in" class="w-4 h-4 mr-1"></i> View Report</div>
+                        <h3 class="text-xl font-bold mb-3 text-white group-hover:text-pink-400 transition-colors lang-tr">Güç Elektroniği 2: Konvertör Tasarımı</h3>
+                        <h3 class="text-xl font-bold mb-3 text-white group-hover:text-pink-400 transition-colors lang-en hidden-lang">Power Electronics 2: Converter Design</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed mb-6 flex-1 lang-tr">400V çıkışlı çevirici için Sürekli (CCM) ve Kesintili (DCM) akım modu L-C parametrelerinin hesaplanması ve doluluk oranı analizleri.</p>
+                        <p class="text-slate-400 text-sm leading-relaxed mb-6 flex-1 lang-en hidden-lang">Calculation of Continuous (CCM) and Discontinuous (DCM) mode L-C parameters and duty cycle analysis.</p>
+                        <div class="text-pink-400 text-sm font-bold flex items-center lang-tr"><i data-lucide="zap" class="w-5 h-5 mr-2"></i> Raporu İncele</div>
+                        <div class="text-pink-400 text-sm font-bold flex items-center lang-en hidden-lang"><i data-lucide="zap" class="w-5 h-5 mr-2"></i> View Report</div>
                     </div>
                 </div>
 
                 <!-- Devre Analizi -->
-                <div onclick="openModal('modal-devre')" class="card-hover cursor-pointer bg-slate-800 rounded-xl border border-slate-700 flex flex-col relative group text-left">
-                    <div class="p-6 h-full flex flex-col">
-                        <div class="flex flex-wrap items-center gap-2 mb-4">
-                            <span class="px-2 py-1 bg-sky-500/20 text-sky-300 text-xs font-bold rounded">Python</span>
-                            <span class="px-2 py-1 bg-slate-700 text-slate-300 text-xs font-bold rounded">RC / RL / RLC</span>
+                <div onclick="openModal('modal-devre')" class="card-hover cursor-pointer bg-slate-800/80 rounded-2xl border border-slate-700 flex flex-col relative group text-left shadow-lg">
+                    <div class="p-8 h-full flex flex-col">
+                        <div class="flex flex-wrap items-center gap-2 mb-5">
+                            <span class="px-3 py-1 bg-sky-500/20 border border-sky-500/30 text-sky-300 text-xs font-bold rounded-full">Python</span>
+                            <span class="px-3 py-1 bg-slate-700 border border-slate-600 text-slate-300 text-xs font-bold rounded-full">RLC</span>
                         </div>
-                        <h3 class="text-lg font-bold mb-3 text-white group-hover:text-sky-400 transition-colors lang-tr">Devre Analizi: Diferansiyel Denklem Modellemesi</h3>
-                        <h3 class="text-lg font-bold mb-3 text-white group-hover:text-sky-400 transition-colors lang-en hidden-lang">Circuit Analysis: Differential Equation Modeling</h3>
-                        <p class="text-slate-400 text-sm leading-relaxed mb-4 flex-1 lang-tr">Birinci ve ikinci dereceden devrelerin doğal/zorlanmış cevapları, sönüm katsayısı (Aşırı, Kritik, Eksik) ve enerji grafikleri.</p>
-                        <p class="text-slate-400 text-sm leading-relaxed mb-4 flex-1 lang-en hidden-lang">Natural/forced responses of first and second order circuits, damping coefficient (Over, Critical, Under) and energy graphs.</p>
-                        <div class="text-sky-400 text-xs font-bold flex items-center lang-tr"><i data-lucide="zoom-in" class="w-4 h-4 mr-1"></i> Raporu İncele</div>
-                        <div class="text-sky-400 text-xs font-bold flex items-center lang-en hidden-lang"><i data-lucide="zoom-in" class="w-4 h-4 mr-1"></i> View Report</div>
+                        <h3 class="text-xl font-bold mb-3 text-white group-hover:text-sky-400 transition-colors lang-tr">Devre Analizi: Diferansiyel Denklem Modellemesi</h3>
+                        <h3 class="text-xl font-bold mb-3 text-white group-hover:text-sky-400 transition-colors lang-en hidden-lang">Circuit Analysis: Differential Equation Modeling</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed mb-6 flex-1 lang-tr">Birinci ve ikinci dereceden devrelerin doğal/zorlanmış cevapları, sönüm katsayısı (Aşırı, Kritik, Eksik) analizleri.</p>
+                        <p class="text-slate-400 text-sm leading-relaxed mb-6 flex-1 lang-en hidden-lang">Natural/forced responses of first and second order circuits, damping coefficient analysis.</p>
+                        <div class="text-sky-400 text-sm font-bold flex items-center lang-tr"><i data-lucide="bar-chart-2" class="w-5 h-5 mr-2"></i> Raporu İncele</div>
+                        <div class="text-sky-400 text-sm font-bold flex items-center lang-en hidden-lang"><i data-lucide="bar-chart-2" class="w-5 h-5 mr-2"></i> View Report</div>
                     </div>
                 </div>
 
-                <!-- Aydınlatma ve İç Tesisat -->
-                <div onclick="openModal('modal-autocad')" class="card-hover cursor-pointer bg-slate-800 rounded-xl border border-slate-700 flex flex-col relative group text-left">
-                    <div class="p-6 h-full flex flex-col">
-                        <div class="flex flex-wrap items-center gap-2 mb-4">
-                            <span class="px-2 py-1 bg-orange-500/20 text-orange-300 text-xs font-bold rounded">AutoCAD & DIALux</span>
+                <!-- BESS Arbitraj -->
+                <div onclick="openModal('modal-bess')" class="card-hover cursor-pointer bg-slate-800/80 rounded-2xl border border-slate-700 flex flex-col relative group text-left shadow-lg">
+                    <div class="p-8 h-full flex flex-col">
+                        <div class="flex flex-wrap items-center gap-2 mb-5">
+                            <span class="px-3 py-1 bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-bold rounded-full">Python</span>
+                            <span class="px-3 py-1 bg-slate-700 border border-slate-600 text-slate-300 text-xs font-bold rounded-full">BESS</span>
                         </div>
-                        <h3 class="text-lg font-bold mb-3 text-white group-hover:text-orange-400 transition-colors lang-tr">İç Tesisat ve Aydınlatma Projelendirme</h3>
-                        <h3 class="text-lg font-bold mb-3 text-white group-hover:text-orange-400 transition-colors lang-en hidden-lang">Indoor Wiring and Lighting Design</h3>
-                        <p class="text-slate-400 text-sm leading-relaxed mb-4 flex-1 lang-tr">
-                            AutoCAD kullanılarak iç tesisat plan çizimleri ve DIALux üzerinden detaylı mimari aydınlatma analizlerinin yapılması.
-                        </p>
-                        <p class="text-slate-400 text-sm leading-relaxed mb-4 flex-1 lang-en hidden-lang">Drawing indoor installation plans using AutoCAD and performing detailed architectural lighting analysis via DIALux.</p>
-                        <div class="text-orange-400 text-xs font-bold flex items-center lang-tr"><i data-lucide="zoom-in" class="w-4 h-4 mr-1"></i> Detayları İncele</div>
-                        <div class="text-orange-400 text-xs font-bold flex items-center lang-en hidden-lang"><i data-lucide="zoom-in" class="w-4 h-4 mr-1"></i> View Details</div>
+                        <h3 class="text-xl font-bold mb-3 text-white group-hover:text-emerald-400 transition-colors lang-tr">BESS Operasyon Simülasyonu & Arbitraj</h3>
+                        <h3 class="text-xl font-bold mb-3 text-white group-hover:text-emerald-400 transition-colors lang-en hidden-lang">BESS Operation Simulation & Arbitrage</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed mb-6 flex-1 lang-tr">EPİAŞ saatlik fiyat (PTF) verileri üzerinden algoritmik batarya şarj/deşarj optimizasyonu ve arbitraj gelir hesabı.</p>
+                        <p class="text-slate-400 text-sm leading-relaxed mb-6 flex-1 lang-en hidden-lang">Algorithmic battery charge/discharge optimization and arbitrage revenue calculation using EPİAŞ hourly price data.</p>
+                        <div class="text-emerald-400 text-sm font-bold flex items-center lang-tr"><i data-lucide="database" class="w-5 h-5 mr-2"></i> Kodları İncele</div>
+                        <div class="text-emerald-400 text-sm font-bold flex items-center lang-en hidden-lang"><i data-lucide="database" class="w-5 h-5 mr-2"></i> View Code</div>
                     </div>
                 </div>
 
-                <!-- TÜBİTAK 2209-B -->
-                <div onclick="openModal('modal-tubitak')" class="card-hover cursor-pointer bg-slate-800 rounded-xl border border-slate-700 flex flex-col relative group text-left">
-                    <div class="p-6 h-full flex flex-col">
-                        <div class="flex flex-wrap items-center gap-2 mb-4">
-                            <span class="px-2 py-1 bg-red-500/20 text-red-300 text-xs font-bold rounded">TÜBİTAK 2209-B</span>
+                <!-- Aydınlatma -->
+                <div onclick="openModal('modal-autocad')" class="card-hover cursor-pointer bg-slate-800/80 rounded-2xl border border-slate-700 flex flex-col relative group text-left shadow-lg">
+                    <div class="p-8 h-full flex flex-col">
+                        <div class="flex flex-wrap items-center gap-2 mb-5">
+                            <span class="px-3 py-1 bg-orange-500/20 border border-orange-500/30 text-orange-300 text-xs font-bold rounded-full">AutoCAD & DIALux</span>
                         </div>
-                        <h3 class="text-lg font-bold mb-3 text-white group-hover:text-red-400 transition-colors lang-tr">Yenilenebilir Enerjide Üretim Tahminlemesi</h3>
-                        <h3 class="text-lg font-bold mb-3 text-white group-hover:text-red-400 transition-colors lang-en hidden-lang">Generation Forecasting in Renewable Energy</h3>
-                        <p class="text-slate-400 text-sm leading-relaxed mb-4 flex-1 lang-tr">Rüzgar ve güneş santrallerinin meteorolojik verilere dayalı üretim tahminlemesi üzerine araştırma ve modelleme.</p>
-                        <p class="text-slate-400 text-sm leading-relaxed mb-4 flex-1 lang-en hidden-lang">Research and modeling on generation forecasting of wind and solar power plants based on meteorological data.</p>
-                        <div class="text-red-400 text-xs font-bold flex items-center lang-tr"><i data-lucide="zoom-in" class="w-4 h-4 mr-1"></i> Detayları İncele</div>
-                        <div class="text-red-400 text-xs font-bold flex items-center lang-en hidden-lang"><i data-lucide="zoom-in" class="w-4 h-4 mr-1"></i> View Details</div>
-                    </div>
-                </div>
-
-                <!-- BESS -->
-                <div onclick="openModal('modal-bess')" class="card-hover cursor-pointer bg-slate-800 rounded-xl border border-slate-700 flex flex-col relative group text-left">
-                    <div class="p-6 h-full flex flex-col">
-                        <div class="flex flex-wrap items-center gap-2 mb-4">
-                            <span class="px-2 py-1 bg-emerald-500/20 text-emerald-300 text-xs font-bold rounded">Python / BESS</span>
-                        </div>
-                        <h3 class="text-lg font-bold mb-3 text-white group-hover:text-emerald-400 transition-colors lang-tr">BESS Operasyon Simülasyonu & Arbitraj</h3>
-                        <h3 class="text-lg font-bold mb-3 text-white group-hover:text-emerald-400 transition-colors lang-en hidden-lang">BESS Operation Simulation & Arbitrage</h3>
-                        <p class="text-slate-400 text-sm leading-relaxed mb-4 flex-1 lang-tr">Lityum-İyon BESS şarj/deşarj histerezis termal kontrolü ve EPİAŞ verileri ile batarya arbitraj optimizasyonu.</p>
-                        <p class="text-slate-400 text-sm leading-relaxed mb-4 flex-1 lang-en hidden-lang">Lithium-Ion BESS charge/discharge hysteresis thermal control and battery arbitrage optimization using EPİAŞ data.</p>
-                        <div class="text-emerald-400 text-xs font-bold flex items-center lang-tr"><i data-lucide="zoom-in" class="w-4 h-4 mr-1"></i> Detayları İncele</div>
-                        <div class="text-emerald-400 text-xs font-bold flex items-center lang-en hidden-lang"><i data-lucide="zoom-in" class="w-4 h-4 mr-1"></i> View Details</div>
-                    </div>
-                </div>
-
-                <!-- BESS DC Kablo Hesaplama -->
-<div onclick="window.open('excelxlpe.html', '_blank')" class="card-hover cursor-pointer bg-slate-800 rounded-xl border border-slate-700 flex flex-col relative group text-left">
-    <div class="p-6 h-full flex flex-col">
-        <div class="flex flex-wrap items-center gap-2 mb-4">
-            <span class="px-2 py-1 bg-pink-500/20 text-pink-300 text-xs font-bold rounded">BESS</span>
-            <span class="px-2 py-1 bg-slate-700 text-slate-300 text-xs font-bold rounded lang-tr">Web Aracı</span>
-            <span class="px-2 py-1 bg-slate-700 text-slate-300 text-xs font-bold rounded lang-en hidden-lang">Web Tool</span>
-            <span class="px-2 py-1 bg-slate-700 text-slate-300 text-xs font-bold rounded">Excel / JS</span>
-        </div>
-        <h3 class="text-lg font-bold mb-3 text-white group-hover:text-pink-400 transition-colors lang-tr">BESS DC Kablo Hesaplama Aracı</h3>
-        <h3 class="text-lg font-bold mb-3 text-white group-hover:text-pink-400 transition-colors lang-en hidden-lang">BESS DC Cable Calculator Tool</h3>
-        <p class="text-slate-400 text-sm leading-relaxed mb-4 flex-1 lang-tr">Batarya Enerji Depolama Sistemleri (BESS) için DC kablo kesit, akım taşıma kapasitesi ve gerilim düşümü hesaplayan web tabanlı mühendislik aracı.</p>
-        <p class="text-slate-400 text-sm leading-relaxed mb-4 flex-1 lang-en hidden-lang">Web-based engineering tool for calculating DC cable cross-section, current carrying capacity, and voltage drop for Battery Energy Storage Systems (BESS).</p>
-        <div class="text-pink-400 text-xs font-bold flex items-center lang-tr"><i data-lucide="external-link" class="w-4 h-4 mr-1"></i> Uygulamayı Aç</div>
-        <div class="text-pink-400 text-xs font-bold flex items-center lang-en hidden-lang"><i data-lucide="external-link" class="w-4 h-4 mr-1"></i> Open App</div>
-    </div>
-</div>
-
-                <!-- Akıllı Ev Sistemleri -->
-                <div onclick="openModal('modal-akilliev')" class="card-hover cursor-pointer bg-slate-800 rounded-xl border border-slate-700 flex flex-col relative group text-left">
-                    <div class="p-6 h-full flex flex-col">
-                        <div class="flex flex-wrap items-center gap-2 mb-4">
-                            <span class="px-2 py-1 bg-yellow-500/20 text-yellow-300 text-xs font-bold rounded">IoT / Otomasyon</span>
-                        </div>
-                        <h3 class="text-lg font-bold mb-3 text-white group-hover:text-yellow-400 transition-colors lang-tr">Akıllı Ev: Şebeke Rahatlatma Algoritması</h3>
-                        <h3 class="text-lg font-bold mb-3 text-white group-hover:text-yellow-400 transition-colors lang-en hidden-lang">Smart Home: Grid Relief Algorithm</h3>
-                        <p class="text-slate-400 text-sm leading-relaxed mb-4 flex-1 lang-tr">Puant saatlerde yüksek tüketimli cihazların çalışmasını şebeke yoğunluğunun az olduğu saatlere kaydıran algoritma tasarımı.</p>
-                        <p class="text-slate-400 text-sm leading-relaxed mb-4 flex-1 lang-en hidden-lang">Algorithm design that shifts high-consumption device operation to hours with lower grid congestion.</p>
-                        <div class="text-yellow-400 text-xs font-bold flex items-center lang-tr"><i data-lucide="zoom-in" class="w-4 h-4 mr-1"></i> Detayları İncele</div>
-                        <div class="text-yellow-400 text-xs font-bold flex items-center lang-en hidden-lang"><i data-lucide="zoom-in" class="w-4 h-4 mr-1"></i> View Details</div>
-                    </div>
-                </div>
-
-                <!-- SIMARIS -->
-                <div onclick="openModal('modal-simaris')" class="card-hover cursor-pointer bg-slate-800 rounded-xl border border-slate-700 flex flex-col relative group text-left">
-                    <div class="p-6 h-full flex flex-col">
-                        <div class="flex flex-wrap items-center gap-2 mb-4">
-                            <span class="px-2 py-1 bg-indigo-500/20 text-indigo-300 text-xs font-bold rounded">Siemens SIMARIS</span>
-                        </div>
-                        <h3 class="text-lg font-bold mb-3 text-white group-hover:text-indigo-400 transition-colors lang-tr">Alçak Gerilim Güç Dağıtım Projesi</h3>
-                        <h3 class="text-lg font-bold mb-3 text-white group-hover:text-indigo-400 transition-colors lang-en hidden-lang">Low Voltage Power Distribution Project</h3>
-                        <p class="text-slate-400 text-sm leading-relaxed mb-4 flex-1 lang-tr">SIMARIS Design ile IEC standartlarına uygun şalt cihazı seçimi, kablo kesit tayini ve kısa devre akım hesaplamalarının yapıldığı global yarışma projesi.</p>
-                        <p class="text-slate-400 text-sm leading-relaxed mb-4 flex-1 lang-en hidden-lang">A global competition project on IEC-compliant switchgear selection, cable sizing, and short-circuit calculations using SIMARIS Design.</p>
-                        <div class="text-indigo-400 text-xs font-bold flex items-center lang-tr"><i data-lucide="zoom-in" class="w-4 h-4 mr-1"></i> Detayları İncele</div>
-                        <div class="text-indigo-400 text-xs font-bold flex items-center lang-en hidden-lang"><i data-lucide="zoom-in" class="w-4 h-4 mr-1"></i> View Details</div>
+                        <h3 class="text-xl font-bold mb-3 text-white group-hover:text-orange-400 transition-colors lang-tr">İç Tesisat ve Aydınlatma Projelendirme</h3>
+                        <h3 class="text-xl font-bold mb-3 text-white group-hover:text-orange-400 transition-colors lang-en hidden-lang">Indoor Wiring and Lighting Design</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed mb-6 flex-1 lang-tr">AutoCAD ile iç tesisat plan çizimleri ve DIALux üzerinden standartlara uygun detaylı mimari aydınlatma simülasyonları.</p>
+                        <p class="text-slate-400 text-sm leading-relaxed mb-6 flex-1 lang-en hidden-lang">Indoor installation plans using AutoCAD and detailed architectural lighting analysis via DIALux.</p>
+                        <div class="text-orange-400 text-sm font-bold flex items-center lang-tr"><i data-lucide="pen-tool" class="w-5 h-5 mr-2"></i> Detayları Gör</div>
+                        <div class="text-orange-400 text-sm font-bold flex items-center lang-en hidden-lang"><i data-lucide="pen-tool" class="w-5 h-5 mr-2"></i> View Details</div>
                     </div>
                 </div>
 
@@ -460,319 +358,173 @@
         </div>
     </section>
 
-    <!-- YAYINLARIM / RAPOR ÖZETLERİ -->
-    <section id="yayinlarim" class="py-20 bg-slate-900/85 border-b border-slate-800">
-        <div class="max-w-7xl mx-auto px-4">
-            <h2 class="text-3xl font-bold mb-4 text-center text-white">
-                <span class="lang-tr">Yayınlarım & <span class="text-sky-500">Sektörel Analizler</span></span>
-                <span class="lang-en hidden-lang">Publications & <span class="text-sky-500">Sectoral Analyses</span></span>
-            </h2>
-            <p class="text-center text-slate-400 mb-10 max-w-2xl mx-auto lang-tr">Sektörden okuduğum raporları kendi bakış açımla özetlediğim bölüm.</p>
-            <p class="text-center text-slate-400 mb-10 max-w-2xl mx-auto lang-en hidden-lang">Where I summarize sector reports I've read, in my own words.</p>
-
-            <div class="flex justify-center mt-2">
-                <div class="bg-slate-800/60 rounded-2xl border border-slate-700 p-8 max-w-2xl text-center">
-                    <i data-lucide="lock" class="w-10 h-10 text-slate-500 mx-auto mb-3"></i>
-                    <h3 class="text-lg font-bold text-white mb-2 lang-tr">Daha Fazlası Yolda</h3>
-                    <h3 class="text-lg font-bold text-white mb-2 lang-en hidden-lang">More on the Way</h3>
-                    <p class="text-slate-400 text-sm leading-relaxed lang-tr">Okuduğum raporlardan (<a href="https://edider.org.tr/" target="_blank" class="text-sky-400 hover:underline font-semibold">EDİDER</a>, TEİAŞ, IEA vb.) kendimce çıkardığım özetleri ve sektörel notları kısa süre içinde bu alanda paylaşmaya devam edeceğim.</p>
-                    <p class="text-slate-400 text-sm leading-relaxed lang-en hidden-lang">I'll keep sharing summaries and sectoral notes I personally extract from the reports I read (<a href="https://edider.org.tr/" target="_blank" class="text-sky-400 hover:underline font-semibold">EDİDER</a>, TEİAŞ, IEA, etc.) in this section.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Zirveler ve Konferanslar -->
-    <section id="konferanslar" class="py-20 bg-slate-800/30 border-b border-slate-800 relative overflow-hidden">
-        <div class="absolute right-0 top-1/3 w-96 h-96 bg-sky-900/20 blur-3xl -z-10"></div>
+    <section id="konferanslar" class="py-24 bg-slate-900 border-b border-slate-800 relative overflow-hidden">
+        <div class="absolute right-0 top-1/3 w-96 h-96 bg-sky-900/10 blur-3xl -z-10 rounded-full"></div>
+        <div class="absolute left-0 bottom-0 w-96 h-96 bg-emerald-900/10 blur-3xl -z-10 rounded-full"></div>
+        
         <div class="max-w-7xl mx-auto px-4 relative z-10">
-            <h2 class="text-3xl font-bold mb-4 text-center text-white">
-                <span class="lang-tr">Sektörel Zirveler & <span class="text-sky-500">Etkinlikler</span></span>
-                <span class="lang-en hidden-lang">Sectoral Summits & <span class="text-sky-500">Events</span></span>
-            </h2>
-            <p class="text-center text-slate-400 mb-12 lang-tr">Enerji ekosistemini yakından takip ediyor; ulusal ve uluslararası kongrelerde hem katılımcı hem de organizatör olarak aktif rol alıyorum.</p>
-            <p class="text-center text-slate-400 mb-12 lang-en hidden-lang">I closely follow the energy ecosystem; taking an active role in national and international congresses as both an attendant and organizer.</p>
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
+                    <span class="lang-tr">Sektörel Zirveler & <span class="text-sky-500">Etkinlikler</span></span>
+                    <span class="lang-en hidden-lang">Sectoral Summits & <span class="text-sky-500">Events</span></span>
+                </h2>
+                <div class="w-24 h-1 bg-sky-500 mx-auto mt-4 mb-6 rounded-full"></div>
+                <p class="text-slate-400 max-w-2xl mx-auto text-lg lang-tr">Enerji ekosistemini yakından takip ediyor; kulüpler, kongreler ve seminerlerde aktif rol alıyorum.</p>
+            </div>
             
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 text-left">
-                
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 text-left">
+                <!-- Kulüpler & Organizatörlük -->
                 <div>
-                    <h3 class="text-xl font-bold mb-6 text-sky-400 border-b border-slate-700 pb-3 flex items-center">
-                        <i data-lucide="check-square" class="w-5 h-5 mr-2"></i> 
-                        <span class="lang-tr">Katıldığım Etkinlik & Eğitimler</span>
-                        <span class="lang-en hidden-lang">Events & Trainings Attended</span>
+                    <h3 class="text-2xl font-bold mb-6 text-sky-400 border-b border-slate-700 pb-3 flex items-center">
+                        <i data-lucide="users" class="w-6 h-6 mr-3"></i> 
+                        <span class="lang-tr">Kulüpler & Organizasyonlar</span>
+                        <span class="lang-en hidden-lang">Clubs & Organizations</span>
+                    </h3>
+                    <div class="space-y-5">
+                        
+                        <div class="bg-slate-800/80 backdrop-blur p-6 rounded-2xl border border-slate-700 flex items-center justify-between shadow-sm hover:border-sky-500 transition-colors">
+                            <div>
+                                <h4 class="font-bold text-white text-lg lang-tr">Yıldız Enerji Seminerleri (YES)</h4>
+                                <h4 class="font-bold text-white text-lg lang-en hidden-lang">Yıldız Energy Seminars (YES)</h4>
+                                <p class="text-sm text-sky-400 mt-1 font-semibold lang-tr">Organizatör & Ekip Lideri</p>
+                                <p class="text-sm text-sky-400 mt-1 font-semibold lang-en hidden-lang">Organizer & Team Lead</p>
+                                <p class="text-sm text-slate-400 mt-2 lang-tr">Enerji sektörünün önde gelen isimlerini üniversitede ağırladığımız, yenilenebilir enerji ve şebeke teknolojileri odaklı seminer serisi.</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-800/80 backdrop-blur p-6 rounded-2xl border border-slate-700 flex items-center justify-between shadow-sm hover:border-sky-500 transition-colors">
+                            <div>
+                                <h4 class="font-bold text-white text-lg">CIGRE YTÜ</h4>
+                                <p class="text-sm text-sky-400 mt-1 font-semibold lang-tr">2026 Yönetim Kurulu Başkanı | 2025 YK Üyesi</p>
+                                <p class="text-sm text-sky-400 mt-1 font-semibold lang-en hidden-lang">2026 Board President | 2025 Board Member</p>
+                                <p class="text-sm text-slate-400 mt-2 lang-tr">Büyük güç sistemleri ve yüksek gerilim üzerine global bir ağ olan CIGRE'nin YTÜ ayağında liderlik.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kongreler -->
+                <div>
+                    <h3 class="text-2xl font-bold mb-6 text-emerald-400 border-b border-slate-700 pb-3 flex items-center">
+                        <i data-lucide="mic" class="w-6 h-6 mr-3"></i> 
+                        <span class="lang-tr">Zirve & Konferanslar</span>
+                        <span class="lang-en hidden-lang">Summits & Conferences</span>
                     </h3>
                     <div class="space-y-4">
-                        
-                        <a href="https://www.linkedin.com/posts/cigreytu_yaftldaftzenerjizirvesi-yaftldaftzteknikaesniveristesi-activity-7483093040199491584-Imsi" target="_blank" class="block bg-slate-800 p-5 rounded-xl border border-slate-700 hover:border-sky-500 transition-all flex items-center justify-between group">
+                        <div class="bg-slate-800/80 backdrop-blur p-5 rounded-2xl border border-slate-700 flex items-center gap-4 hover:border-emerald-500 transition-colors">
+                            <div class="w-12 text-center flex-shrink-0"><i data-lucide="wind" class="w-8 h-8 text-emerald-400 mx-auto"></i></div>
                             <div>
-                                <h4 class="font-bold text-white group-hover:text-sky-400 transition-colors lang-tr">Yıldız Enerji Zirvesi 2026</h4>
-                                <h4 class="font-bold text-white group-hover:text-sky-400 transition-colors lang-en hidden-lang">Yıldız Energy Summit 2026</h4>
-                                <p class="text-xs text-slate-400 mt-1 font-semibold lang-tr">CIGRE YTÜ - Kulüp Başkanı & Organizatör</p>
-                                <p class="text-xs text-slate-400 mt-1 font-semibold lang-en hidden-lang">CIGRE YTÜ - Club President & Organizer</p>
-                            </div>
-                            <i data-lucide="linkedin" class="w-6 h-6 text-[#0A66C2]"></i>
-                        </a>
-
-                        <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 flex items-center justify-between">
-                            <div>
-                                <h4 class="font-bold text-white lang-tr">Yıldız Enerji Zirvesi 2025</h4>
-                                <h4 class="font-bold text-white lang-en hidden-lang">Yıldız Energy Summit 2025</h4>
-                                <p class="text-xs text-slate-400 mt-1 font-semibold lang-tr">CIGRE YTÜ - Yönetim Kurulu Üyesi</p>
-                                <p class="text-xs text-slate-400 mt-1 font-semibold lang-en hidden-lang">CIGRE YTÜ - Board Member</p>
+                                <h4 class="font-bold text-white lang-tr">TÜREK Rüzgar Enerjisi Kongresi</h4>
+                                <h4 class="font-bold text-white lang-en hidden-lang">TÜREK Wind Energy Congress</h4>
+                                <p class="text-xs text-slate-400 mt-1 font-semibold lang-tr">Görevli Katılımcı</p>
                             </div>
                         </div>
 
-                        <div onclick="openModal('modal-turek')" class="cursor-pointer group bg-slate-800 border border-slate-700 hover:border-sky-500 p-5 rounded-xl transition-all flex items-center justify-between">
-                            <div class="flex items-center gap-4">
-                                <div class="w-10 text-center"><i data-lucide="wind" class="w-8 h-8 text-sky-500"></i></div>
-                                <div>
-                                    <h4 class="font-bold text-white group-hover:text-sky-400 transition-colors lang-tr">TÜREK 2026 Rüzgar Enerjisi Kongresi</h4>
-                                    <h4 class="font-bold text-white group-hover:text-sky-400 transition-colors lang-en hidden-lang">TÜREK 2026 Wind Energy Congress</h4>
-                                    <p class="text-xs text-slate-400 mt-1 font-semibold lang-tr">Ankara | Görevli Katılımcı</p>
-                                    <p class="text-xs text-slate-400 mt-1 font-semibold lang-en hidden-lang">Ankara | Attendant & Participant</p>
-                                </div>
-                            </div>
-                            <i data-lucide="camera" class="w-5 h-5 text-slate-500 group-hover:text-sky-400 transition-colors"></i>
-                        </div>
-
-                        <div onclick="openModal('modal-zena')" class="cursor-pointer group bg-slate-800 border border-slate-700 hover:border-orange-500 p-5 rounded-xl transition-all flex items-center justify-between">
-                            <div class="flex items-center gap-4">
-                                <div class="w-10 text-center"><i data-lucide="award" class="w-8 h-8 text-orange-500"></i></div>
-                                <div>
-                                    <h4 class="font-bold text-white group-hover:text-orange-500 transition-colors lang-tr">Zena Enerji GES Eğitimi</h4>
-                                    <h4 class="font-bold text-white group-hover:text-orange-500 transition-colors lang-en hidden-lang">Zena Energy Solar Power Plant Training</h4>
-                                    <p class="text-xs text-slate-400 mt-1 font-semibold lang-tr">Sertifikalı Katılımcı</p>
-                                    <p class="text-xs text-slate-400 mt-1 font-semibold lang-en hidden-lang">Certified Participant</p>
-                                </div>
-                            </div>
-                            <span class="text-xs font-bold bg-orange-500/20 text-orange-400 border border-orange-500/30 px-3 py-1.5 rounded-md group-hover:bg-orange-500 group-hover:text-white transition-colors lang-tr">Sertifikayı Gör</span>
-                            <span class="text-xs font-bold bg-orange-500/20 text-orange-400 border border-orange-500/30 px-3 py-1.5 rounded-md group-hover:bg-orange-500 group-hover:text-white transition-colors lang-en hidden-lang">View Certificate</span>
-                        </div>
-
-                        <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 flex items-center gap-4">
-                            <div class="w-10 text-center"><i data-lucide="sun" class="w-8 h-8 text-yellow-500"></i></div>
+                        <div class="bg-slate-800/80 backdrop-blur p-5 rounded-2xl border border-slate-700 flex items-center gap-4 hover:border-emerald-500 transition-colors">
+                            <div class="w-12 text-center flex-shrink-0"><i data-lucide="sun" class="w-8 h-8 text-yellow-500 mx-auto"></i></div>
                             <div>
-                                <h4 class="font-bold text-white lang-tr">Solarex İstanbul</h4>
-                                <h4 class="font-bold text-white lang-en hidden-lang">Solarex Istanbul</h4>
-                                <p class="text-xs text-slate-400 mt-1 font-semibold lang-tr">Katılımcı</p>
-                                <p class="text-xs text-slate-400 mt-1 font-semibold lang-en hidden-lang">Participant</p>
+                                <h4 class="font-bold text-white lang-tr">Zena Enerji GES Eğitimi</h4>
+                                <h4 class="font-bold text-white lang-en hidden-lang">Zena Energy Solar Training</h4>
+                                <p class="text-xs text-slate-400 mt-1 font-semibold lang-tr">Sertifikalı Katılımcı</p>
                             </div>
                         </div>
 
-                        <a href="https://edider.org.tr/" target="_blank" class="block group bg-slate-800 p-5 rounded-xl border border-slate-700 hover:border-emerald-500 transition-all flex items-center gap-4">
-                            <div class="w-10 text-center"><i data-lucide="leaf" class="w-8 h-8 text-emerald-500"></i></div>
-                            <div class="flex-1">
-                                <h4 class="font-bold text-white group-hover:text-emerald-400 transition-colors lang-tr">EDİDER 3. Yeşil Enerji Zirvesi</h4>
-                                <h4 class="font-bold text-white group-hover:text-emerald-400 transition-colors lang-en hidden-lang">EDİDER 3rd Green Energy Summit</h4>
-                                <p class="text-xs text-slate-400 mt-1 font-semibold lang-tr">Kasım 2025 | Katılımcı</p>
-                                <p class="text-xs text-slate-400 mt-1 font-semibold lang-en hidden-lang">Nov 2025 | Participant</p>
-                            </div>
-                            <i data-lucide="external-link" class="w-4 h-4 text-slate-500 group-hover:text-emerald-400 transition-colors"></i>
-                        </a>
-
-                        <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 flex items-center gap-4">
-                            <div class="w-10 text-center"><i data-lucide="battery-medium" class="w-8 h-8 text-sky-500"></i></div>
+                        <div class="bg-slate-800/80 backdrop-blur p-5 rounded-2xl border border-slate-700 flex items-center gap-4 hover:border-emerald-500 transition-colors">
+                            <div class="w-12 text-center flex-shrink-0"><i data-lucide="battery-medium" class="w-8 h-8 text-sky-500 mx-auto"></i></div>
                             <div>
-                                <h4 class="font-bold text-white lang-tr">2. Enerjinin Geleceği ve Depolama Kongresi</h4>
-                                <h4 class="font-bold text-white lang-en hidden-lang">2nd Future of Energy and Storage Congress</h4>
-                                <p class="text-xs text-slate-400 mt-1 font-semibold lang-tr">CIGRE YTÜ Görevlisi & Katılımcı</p>
-                                <p class="text-xs text-slate-400 mt-1 font-semibold lang-en hidden-lang">CIGRE YTÜ Staff & Participant</p>
+                                <h4 class="font-bold text-white lang-tr">Enerjinin Geleceği ve Depolama Kongresi</h4>
+                                <h4 class="font-bold text-white lang-en hidden-lang">Future of Energy and Storage Congress</h4>
+                                <p class="text-xs text-slate-400 mt-1 font-semibold lang-tr">CIGRE YTÜ Görevlisi</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div>
-                    <h3 class="text-xl font-bold mb-6 text-slate-300 border-b border-slate-700 pb-3 flex items-center">
-                        <i data-lucide="calendar-days" class="w-5 h-5 mr-2"></i> 
-                        <span class="lang-tr">Katılmayı İstediğim Etkinlikler</span>
-                        <span class="lang-en hidden-lang">Target Agenda (Upcoming Events)</span>
-                    </h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div class="bg-slate-800 border border-slate-700 border-l-4 border-l-sky-500 p-5 rounded-xl">
-                            <p class="text-xs text-sky-400 font-bold mb-1 uppercase lang-tr">8 Aralık 2026</p>
-                            <p class="text-xs text-sky-400 font-bold mb-1 uppercase lang-en hidden-lang">December 8, 2026</p>
-                            <h4 class="font-bold text-sm text-white lang-tr">3. Enerjinin Geleceği ve Depolama Kongresi</h4>
-                            <h4 class="font-bold text-sm text-white lang-en hidden-lang">3rd Future of Energy and Storage Congress</h4>
-                        </div>
-                        <div class="bg-slate-800 border border-slate-700 border-l-4 border-l-purple-500 p-5 rounded-xl">
-                            <p class="text-xs text-purple-400 font-bold mb-1 uppercase lang-tr">2027 Hedefi</p>
-                            <p class="text-xs text-purple-400 font-bold mb-1 uppercase lang-en hidden-lang">2027 Target</p>
-                            <h4 class="font-bold text-sm text-white">TÜREK 2027</h4>
-                        </div>
-                        <div class="bg-slate-800 border border-slate-700 border-l-4 border-l-emerald-500 p-5 rounded-xl sm:col-span-2">
-                            <p class="text-xs text-emerald-400 font-bold mb-1 uppercase lang-tr">Küresel Vizyon</p>
-                            <p class="text-xs text-emerald-400 font-bold mb-1 uppercase lang-en hidden-lang">Global Vision</p>
-                            <h4 class="font-bold text-sm text-white lang-tr">COP31 İklim Zirvesi (Antalya)</h4>
-                            <h4 class="font-bold text-sm text-white lang-en hidden-lang">COP31 Climate Summit (Antalya)</h4>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </section>
-
-    <!-- Sivil Toplum ve Liderlik -->
-    <section class="py-20 bg-slate-900/85 border-b border-slate-800">
-        <div class="max-w-7xl mx-auto px-4">
-            <h2 class="text-3xl font-bold mb-12 text-center text-white">
-                <span class="lang-tr">Sivil Toplum & <span class="text-sky-500">Liderlik</span></span>
-                <span class="lang-en hidden-lang">Volunteering & <span class="text-sky-500">Leadership</span></span>
-            </h2>
-            
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 flex flex-col items-center text-center">
-                    <i data-lucide="zap" class="w-8 h-8 text-yellow-400 mb-4"></i>
-                    <h4 class="font-bold text-sm text-white mb-1">CIGRE YTÜ</h4>
-                    <p class="text-xs text-slate-400 font-semibold lang-tr">2026 Yönetim Kurulu Başkanı<br>2025 Yönetim Kurulu Üyesi</p>
-                    <p class="text-xs text-slate-400 font-semibold lang-en hidden-lang">2026 Board President<br>2025 Board Member</p>
-                </div>
-                <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 flex flex-col items-center text-center">
-                    <i data-lucide="globe" class="w-8 h-8 text-sky-400 mb-4"></i>
-                    <h4 class="font-bold text-sm text-white mb-1">GlobalGen</h4>
-                    <p class="text-xs text-slate-400 font-semibold">Co-founder<br><a href="https://globalgen.tr/" target="_blank" class="text-sky-400 hover:underline">globalgen.tr</a></p>
-                </div>
-                <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 flex flex-col items-center text-center">
-                    <i data-lucide="wind" class="w-8 h-8 text-emerald-400 mb-4"></i>
-                    <h4 class="font-bold text-sm text-white mb-1 lang-tr">Türkiye Rüzgar Enerjisi Birliği (TÜREB)</h4>
-                    <h4 class="font-bold text-sm text-white mb-1 lang-en hidden-lang">Turkish Wind Energy Association</h4>
-                    <p class="text-xs text-slate-400 font-semibold mt-1 lang-tr">Üye</p>
-                    <p class="text-xs text-slate-400 font-semibold mt-1 lang-en hidden-lang">Member</p>
-                </div>
-                <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 flex flex-col items-center text-center">
-                    <i data-lucide="users" class="w-8 h-8 text-orange-400 mb-4"></i>
-                    <h4 class="font-bold text-sm text-white mb-1 lang-tr">YetGen Lider</h4>
-                    <h4 class="font-bold text-sm text-white mb-1 lang-en hidden-lang">YetGen Leader</h4>
-                    <p class="text-xs text-slate-400 font-semibold lang-tr">2024-2026 Gönüllü</p>
-                    <p class="text-xs text-slate-400 font-semibold lang-en hidden-lang">2024-2026 Volunteer</p>
-                </div>
-                <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 flex flex-col items-center text-center">
-                    <i data-lucide="rocket" class="w-8 h-8 text-red-400 mb-4"></i>
-                    <h4 class="font-bold text-sm text-white mb-1 lang-tr">Girişimcilik Vakfı</h4>
-                    <h4 class="font-bold text-sm text-white mb-1 lang-en hidden-lang">Entrepreneurship Foundation</h4>
-                    <p class="text-xs text-slate-400 font-semibold">2024 Challenger</p>
-                </div>
-                <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 flex flex-col items-center text-center">
-                    <i data-lucide="plug" class="w-8 h-8 text-indigo-400 mb-4"></i>
-                    <h4 class="font-bold text-sm text-white mb-1 lang-tr">Elektrik Mühendisleri Odası</h4>
-                    <h4 class="font-bold text-sm text-white mb-1 lang-en hidden-lang">Chamber of Electrical Engineers</h4>
-                    <p class="text-xs text-slate-400 font-semibold lang-tr">Okul Temsilcisi</p>
-                    <p class="text-xs text-slate-400 font-semibold lang-en hidden-lang">School Representative</p>
-                </div>
-                <div onclick="openModal('modal-erasmus')" class="cursor-pointer hover:border-purple-400 transition-all bg-slate-800 p-6 rounded-2xl border border-slate-700 flex flex-col items-center text-center group">
-                    <i data-lucide="plane" class="w-8 h-8 text-purple-400 mb-4 group-hover:-translate-y-1 transition-transform"></i>
-                    <h4 class="font-bold text-sm text-white mb-1 group-hover:text-purple-400">Erasmus+</h4>
-                    <p class="text-xs text-slate-400 font-semibold lang-tr">4-12 Kasım Litvanya<br>Proje Katılımcısı</p>
-                    <p class="text-xs text-slate-400 font-semibold lang-en hidden-lang">Nov 4-12 Lithuania<br>Project Participant</p>
-                </div>
-                <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 flex flex-col items-center text-center">
-                    <i data-lucide="handshake" class="w-8 h-8 text-teal-400 mb-4"></i>
-                    <h4 class="font-bold text-sm text-white mb-1">AIESEC</h4>
-                    <p class="text-xs text-slate-400 font-semibold lang-tr">2024 (3 Ay)<br>Görevli / Gönüllü</p>
-                    <p class="text-xs text-slate-400 font-semibold lang-en hidden-lang">2024 (3 Months)<br>Staff / Volunteer</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Yetenekler -->
-    <section id="yetenekler" class="py-20 bg-slate-800/30 border-b border-slate-800">
-        <div class="max-w-7xl mx-auto px-4">
-            <h2 class="text-3xl font-bold mb-12 text-center text-white">
-                <span class="lang-tr">Yazılım ve Teknik<span class="text-sky-500"> Yetkinlikler</span></span>
-                <span class="lang-en hidden-lang">Software and Technical<span class="text-sky-500"> Skills</span></span>
-            </h2>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
-                <div class="bg-slate-800 p-8 rounded-2xl border border-slate-700">
-                    <h3 class="text-lg font-bold mb-5 text-emerald-400 border-b border-slate-700 pb-3 flex items-center">
-                        <i data-lucide="check-circle" class="w-5 h-5 mr-2"></i> 
-                        <span class="lang-tr">Aktif Kullandıklarım</span>
-                        <span class="lang-en hidden-lang">Actively Used</span>
-                    </h3>
-                    <ul class="space-y-4">
-                        <li class="flex items-center text-slate-300 font-medium"><i data-lucide="pen-tool" class="w-5 h-5 text-slate-500 mr-3"></i> AutoCAD</li>
-                        <li class="flex items-center text-slate-300 font-medium"><i data-lucide="zap" class="w-5 h-5 text-slate-500 mr-3"></i> PSIM</li>
-                    </ul>
-                </div>
-                
-                <div class="bg-slate-800 p-8 rounded-2xl border border-slate-700">
-                    <h3 class="text-lg font-bold mb-5 text-sky-400 border-b border-slate-700 pb-3 flex items-center">
-                        <i data-lucide="layers" class="w-5 h-5 mr-2"></i> 
-                        <span class="lang-tr">Temel / Geçmiş Eğitimler</span>
-                        <span class="lang-en hidden-lang">Fundamental / Past Trainings</span>
-                    </h3>
-                    <ul class="space-y-4">
-                        <li class="flex items-center text-slate-300 font-medium"><i data-lucide="cpu" class="w-5 h-5 text-slate-500 mr-3"></i> MATLAB & Simulink</li>
-                        <li class="flex items-center text-slate-300 font-medium"><i data-lucide="factory" class="w-5 h-5 text-slate-500 mr-3"></i> Siemens SIMARIS</li>
-                        <li class="flex items-center text-slate-300 font-medium"><i data-lucide="lightbulb" class="w-5 h-5 text-slate-500 mr-3"></i> DIALux</li>
-                        <li class="flex items-center text-slate-300 font-medium"><i data-lucide="file-text" class="w-5 h-5 text-slate-500 mr-3"></i> Python (Pandas)</li>
-                        <li class="flex items-center text-slate-300 font-medium"><i data-lucide="smartphone" class="w-5 h-5 text-slate-500 mr-3"></i> Dart & Flutter <span class="text-xs text-slate-500 ml-2 font-normal">(2023)</span></li>
-                    </ul>
-                </div>
-                
-                <div class="bg-slate-800 p-8 rounded-2xl border border-slate-700">
-                    <h3 class="text-lg font-bold mb-5 text-orange-400 border-b border-slate-700 pb-3 flex items-center">
-                        <i data-lucide="rocket" class="w-5 h-5 mr-2"></i> 
-                        <span class="lang-tr">Öğrenmeyi Hedeflediklerim</span>
-                        <span class="lang-en hidden-lang">Targeting to Learn</span>
-                    </h3>
-                    <ul class="space-y-4">
-                        <li class="flex items-center text-slate-400 font-medium"><i data-lucide="chevron-right" class="w-5 h-5 text-orange-500 mr-2"></i> DIgSILENT PowerFactory</li>
-                        <li class="flex items-center text-slate-400 font-medium"><i data-lucide="chevron-right" class="w-5 h-5 text-orange-500 mr-2"></i> ETAP</li>
-                        <li class="flex items-center text-slate-400 font-medium"><i data-lucide="chevron-right" class="w-5 h-5 text-orange-500 mr-2"></i> HOMER Energy</li>
-                    </ul>
-                </div>
             </div>
         </div>
     </section>
 
     <!-- İletişim / Footer -->
-    <section id="iletisim" class="pt-24 pb-16 bg-slate-900/85 text-center relative flex flex-col">
+    <section id="iletisim" class="pt-24 pb-16 bg-slate-950 text-center relative flex flex-col border-t border-slate-800">
         <div class="max-w-3xl mx-auto px-4 flex-1 relative z-10">
             <h2 class="text-3xl font-bold mb-6 text-white">
                 <span class="lang-tr">Benimle İletişime Geçin</span>
                 <span class="lang-en hidden-lang">Get in Touch</span>
             </h2>
-            <p class="text-slate-400 mb-10 text-lg text-left md:text-center leading-relaxed">
-                <span class="lang-tr">Sektörel etkinlikler, projeler veya enerji sistemleri hakkında iletişim kurmak veya ulaşmak isterseniz aşağıdaki kanallardan iletişim kurabilirsiniz. <br><br> <span class="text-sky-400 font-bold text-xl">Enerjiyle kalın, kendinize iyi bakın!</span></span>
-                <span class="lang-en hidden-lang">If you would like to connect or reach out regarding sectoral events, projects, or energy systems, you can contact me through the channels below. <br><br> <span class="text-sky-400 font-bold text-xl">Stay energized, take care!</span></span>
+            <p class="text-slate-400 mb-10 text-lg leading-relaxed">
+                <span class="lang-tr">Sektörel etkinlikler, projeler veya enerji sistemleri hakkında iletişim kurmak isterseniz aşağıdaki kanallardan ulaşabilirsiniz. <br><br> <span class="text-sky-400 font-bold text-xl">Enerjiyle kalın!</span></span>
+                <span class="lang-en hidden-lang">If you would like to connect regarding sectoral events or energy systems, you can reach out through the channels below. <br><br> <span class="text-sky-400 font-bold text-xl">Stay energized!</span></span>
             </p>
             
             <div class="flex flex-col sm:flex-row justify-center items-center gap-6 mb-12">
-                <a href="https://www.linkedin.com/in/ilginakkoyun/" target="_blank" class="flex items-center bg-[#0A66C2] hover:bg-[#084e96] text-white font-bold py-3 px-8 rounded-lg transition-transform hover:scale-105 shadow-md w-full sm:w-auto justify-center">
-                    <i data-lucide="linkedin" class="w-5 h-5 mr-3 fill-current"></i> 
+                <a href="https://www.linkedin.com/in/ilginakkoyun/" target="_blank" class="flex items-center bg-[#0A66C2] hover:bg-[#084e96] text-white font-bold py-3.5 px-8 rounded-xl transition-all hover:scale-105 shadow-lg w-full sm:w-auto justify-center">
+                    <i data-lucide="linkedin" class="w-5 h-5 mr-3"></i> 
                     <span class="lang-tr">LinkedIn'de Bağlantı Kur</span>
                     <span class="lang-en hidden-lang">Connect on LinkedIn</span>
                 </a>
                 
-                <a href="mailto:ilgin.akkoyun@std.yildiz.edu.tr" class="flex items-center bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 px-8 rounded-lg transition-transform hover:scale-105 border border-slate-600 shadow-sm w-full sm:w-auto justify-center">
-                    <i data-lucide="mail" class="w-5 h-5 mr-3 text-sky-400"></i> ilgin.akkoyun@std.yildiz.edu.tr
+                <a href="mailto:ilgin.akkoyun@std.yildiz.edu.tr" class="flex items-center bg-slate-800 hover:bg-slate-700 text-white font-bold py-3.5 px-8 rounded-xl transition-all hover:scale-105 border border-slate-600 shadow-md w-full sm:w-auto justify-center">
+                    <i data-lucide="mail" class="w-5 h-5 mr-3 text-sky-400"></i> E-Posta Gönder
                 </a>
             </div>
             
-            <div class="text-slate-500 text-sm font-medium">
+            <div class="text-slate-600 text-sm font-medium">
                 &copy; 2026 Ilgın Akkoyun.
             </div>
         </div>
     </section>
 
-    <!-- ================= PROJE & ÖDEV MODALLARI ================= -->
 
-    <!-- Güç Elektroniği 1 Modalı -->
-    <div id="modal-guc1" class="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 transition-all">
+    <!-- Kablo Kesit Excel Modalı -->
+    <div id="modal-kablo" class="fixed inset-0 z-[100] bg-slate-900/90 backdrop-blur-sm hidden items-center justify-center p-4 transition-all">
         <div class="bg-slate-900 border border-slate-700 w-full max-w-3xl rounded-2xl shadow-2xl modal-content flex flex-col overflow-hidden">
             <div class="flex justify-between items-center p-6 border-b border-slate-800 sticky top-0 z-10 bg-slate-900">
                 <h3 class="text-xl font-bold text-white flex items-center">
-                    <i data-lucide="zap" class="w-6 h-6 mr-3 text-purple-400"></i> 
+                    <i data-lucide="file-spreadsheet" class="w-6 h-6 mr-3 text-green-400"></i> 
+                    <span class="lang-tr">Kablo Kesit ve Gerilim Düşümü Otomasyonu</span>
+                    <span class="lang-en hidden-lang">Cable Sizing and Voltage Drop Automation</span>
+                </h3>
+                <button type="button" onclick="closeModal('modal-kablo')" class="text-slate-400 hover:text-white transition-colors"><i data-lucide="x" class="w-6 h-6"></i></button>
+            </div>
+            <div class="p-8 space-y-6 text-slate-300 text-left">
+                <p class="text-sm leading-relaxed text-slate-400 lang-tr">Geliştirdiğim bu Excel aracı, projelerde iletken kesitini belirlemek için gereken standart formülleri otomatik olarak hesaplar ve standartlara uygun kesiti seçer.</p>
+                <p class="text-sm leading-relaxed text-slate-400 lang-en hidden-lang">This Excel tool I developed automatically calculates the standard formulas needed to determine conductor cross-sections in projects and selects the appropriate cross-section according to standards.</p>
+                
+                <div class="bg-slate-800/80 p-6 rounded-xl border border-slate-700">
+                    <h4 class="text-green-400 font-bold mb-4 lang-tr">Temel Hesaplama Mantığı</h4>
+                    <h4 class="text-green-400 font-bold mb-4 lang-en hidden-lang">Basic Calculation Logic</h4>
+                    <ul class="space-y-4 text-sm">
+                        <li class="flex flex-col">
+                            <span class="font-bold text-white mb-1">1. Gerilim Düşümü (%e):</span>
+                            <span class="text-slate-400">Trifaze sistemler için <code class="bg-slate-950 text-sky-300 px-2 py-1 rounded border border-slate-700">%e = (100 * L * P) / (&kappa; * S * U&sup2;)</code> formülü kullanılır. Aydınlatma için max %1.5, motorlar için max %3 sınırı kontrol edilir.</span>
+                        </li>
+                        <li class="flex flex-col">
+                            <span class="font-bold text-white mb-1">2. Akım Taşıma Kontrolü:</span>
+                            <span class="text-slate-400">Çekilen akım <code class="bg-slate-950 text-sky-300 px-2 py-1 rounded border border-slate-700">I = P / (&radic;3 * U * cos&phi;)</code> formülü ile bulunur ve tablodan havada/toprakta akım taşıma kapasitesi teyit edilir.</span>
+                        </li>
+                        <li class="flex flex-col">
+                            <span class="font-bold text-white mb-1">3. Kısa Devre Kontrolü:</span>
+                            <span class="text-slate-400">Isınma sınırlarına göre iletkenin kısa devre anında dayanabileceği maksimum süre ve akım tahkik edilir.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Güç Elektroniği 1 Modalı -->
+    <div id="modal-guc1" class="fixed inset-0 z-[100] bg-slate-900/90 backdrop-blur-sm hidden items-center justify-center p-4 transition-all">
+        <div class="bg-slate-900 border border-slate-700 w-full max-w-3xl rounded-2xl shadow-2xl modal-content flex flex-col overflow-hidden">
+            <div class="flex justify-between items-center p-6 border-b border-slate-800 sticky top-0 z-10 bg-slate-900">
+                <h3 class="text-xl font-bold text-white flex items-center">
+                    <i data-lucide="activity" class="w-6 h-6 mr-3 text-purple-400"></i> 
                     <span class="lang-tr">Güç Elektroniği 1: Tam Dalga Doğrultucu</span>
                     <span class="lang-en hidden-lang">Power Electronics 1: Full-Wave Rectifier</span>
                 </h3>
                 <button type="button" onclick="closeModal('modal-guc1')" class="text-slate-400 hover:text-white transition-colors"><i data-lucide="x" class="w-6 h-6"></i></button>
             </div>
             <div class="p-8 space-y-6 text-slate-300 text-left">
-                <div class="bg-slate-800/50 p-5 rounded-xl border border-slate-700">
+                <div class="bg-slate-800/80 p-5 rounded-xl border border-slate-700">
                     <h4 class="text-purple-400 font-bold mb-3 lang-tr">Tasarım Parametreleri</h4>
                     <h4 class="text-purple-400 font-bold mb-3 lang-en hidden-lang">Design Parameters</h4>
                     <ul class="space-y-2 text-sm">
@@ -782,42 +534,14 @@
                     </ul>
                 </div>
 
-                <div class="bg-slate-800/50 p-5 rounded-xl border border-slate-700">
+                <div class="bg-slate-800/80 p-5 rounded-xl border border-slate-700">
                     <h4 class="text-purple-400 font-bold mb-3 lang-tr">Analitik ve Simülasyon (PSIM) Sonuçları</h4>
                     <h4 class="text-purple-400 font-bold mb-3 lang-en hidden-lang">Analytic and Simulation (PSIM) Results</h4>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                        <div>
-                            <p class="text-slate-400">Çıkış Gerilimi (V<sub>d</sub>):</p>
-                            <p class="font-bold text-white">184.8 V</p>
-                        </div>
-                        <div>
-                            <p class="text-slate-400">Çıkış Gerilimi Max:</p>
-                            <p class="font-bold text-white">311.0 V</p>
-                        </div>
-                        <div>
-                            <p class="text-slate-400">Giriş Gücü (P<sub>giriş</sub>):</p>
-                            <p class="font-bold text-white">1202.3 W</p>
-                        </div>
-                        <div>
-                            <p class="text-slate-400">Çıkış Gücü (P<sub>çıkış</sub>):</p>
-                            <p class="font-bold text-white">1277 W</p>
-                        </div>
-                        <div>
-                            <p class="text-slate-400">Giriş Akımı (RMS):</p>
-                            <p class="font-bold text-white">5.52 A</p>
-                        </div>
-                        <div>
-                            <p class="text-slate-400">Giriş Akımı THD:</p>
-                            <p class="font-bold text-white">0.15</p>
-                        </div>
-                        <div>
-                            <p class="text-slate-400">Güç Faktörü (PF):</p>
-                            <p class="font-bold text-white">0.99</p>
-                        </div>
-                        <div>
-                            <p class="text-slate-400">İdeal Giriş Akımı (PF=1):</p>
-                            <p class="font-bold text-white">8.25 A</p>
-                        </div>
+                        <div class="bg-slate-900/50 p-3 rounded-lg border border-slate-700/50"><p class="text-slate-400">Çıkış Gerilimi (V<sub>d</sub>):</p><p class="font-bold text-white text-lg">184.8 V</p></div>
+                        <div class="bg-slate-900/50 p-3 rounded-lg border border-slate-700/50"><p class="text-slate-400">Giriş Gücü (P<sub>giriş</sub>):</p><p class="font-bold text-white text-lg">1202.3 W</p></div>
+                        <div class="bg-slate-900/50 p-3 rounded-lg border border-slate-700/50"><p class="text-slate-400">Giriş Akımı RMS:</p><p class="font-bold text-white text-lg">5.52 A</p></div>
+                        <div class="bg-slate-900/50 p-3 rounded-lg border border-slate-700/50"><p class="text-slate-400">Giriş Akımı THD:</p><p class="font-bold text-white text-lg">0.15</p></div>
                     </div>
                 </div>
             </div>
@@ -825,50 +549,37 @@
     </div>
 
     <!-- Güç Elektroniği 2 Modalı -->
-    <div id="modal-guc2" class="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 transition-all">
+    <div id="modal-guc2" class="fixed inset-0 z-[100] bg-slate-900/90 backdrop-blur-sm hidden items-center justify-center p-4 transition-all">
         <div class="bg-slate-900 border border-slate-700 w-full max-w-3xl rounded-2xl shadow-2xl modal-content flex flex-col overflow-hidden">
             <div class="flex justify-between items-center p-6 border-b border-slate-800 sticky top-0 z-10 bg-slate-900">
                 <h3 class="text-xl font-bold text-white flex items-center">
-                    <i data-lucide="cpu" class="w-6 h-6 mr-3 text-pink-400"></i> 
+                    <i data-lucide="zap" class="w-6 h-6 mr-3 text-pink-400"></i> 
                     <span class="lang-tr">Güç Elektroniği 2: Konvertör Tasarımı</span>
                     <span class="lang-en hidden-lang">Power Electronics 2: Converter Design</span>
                 </h3>
                 <button type="button" onclick="closeModal('modal-guc2')" class="text-slate-400 hover:text-white transition-colors"><i data-lucide="x" class="w-6 h-6"></i></button>
             </div>
             <div class="p-8 space-y-6 text-slate-300 text-left">
-                <div class="bg-slate-800/50 p-5 rounded-xl border border-slate-700">
-                    <h4 class="text-pink-400 font-bold mb-3 lang-tr">Genel Sistem Parametreleri</h4>
-                    <h4 class="text-pink-400 font-bold mb-3 lang-en hidden-lang">General System Parameters</h4>
-                    <ul class="space-y-2 text-sm">
-                        <li><b>Giriş Gerilimi (V<sub>g</sub>):</b> 200 - 250 V</li>
-                        <li><b>Çıkış Gerilimi (V<sub>out</sub>):</b> 400 V</li>
-                        <li><b>Çıkış Akımı:</b> 4 - 8 A</li>
-                        <li><b>Anahtarlama Frekansı (f<sub>p</sub>):</b> 50 kHz</li>
-                    </ul>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div class="bg-slate-800/50 p-5 rounded-xl border border-slate-700">
-                        <h4 class="text-pink-400 font-bold mb-3">Sürekli Akım Modu (CCM)</h4>
-                        <ul class="space-y-2 text-sm text-slate-400">
-                            <li><b>Durum:</b> V<sub>g</sub> max (250V), I<sub>out</sub> min (4A)</li>
-                            <li><b>Doluluk Oranı (&lambda;):</b> 0.615 (%61.5)</li>
-                            <li><b>L Değeri:</b> &gt; 147.9 &mu;H (Seçilen: 3 mH, dalgalanmayı %10'da tutmak için)</li>
-                            <li><b>C Değeri:</b> 20 &mu;F (Hesaplanan: 12.3 &mu;F)</li>
-                            <li><b>&Delta;I<sub>L</sub> (Dalgalanma):</b> ~1.02 A</li>
-                            <li><b>&Delta;V<sub>c</sub> (Dalgalanma):</b> 2.45 V</li>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div class="bg-slate-800/80 p-6 rounded-xl border border-slate-700">
+                        <h4 class="text-pink-400 font-bold mb-3 text-lg border-b border-slate-700 pb-2">Sürekli Akım Modu (CCM)</h4>
+                        <ul class="space-y-3 text-sm text-slate-300">
+                            <li><b class="text-slate-400">Durum:</b> V<sub>g</sub> max (250V), I<sub>out</sub> min (4A)</li>
+                            <li><b class="text-slate-400">Doluluk Oranı (&lambda;):</b> 0.615</li>
+                            <li><b class="text-slate-400">L Değeri:</b> 3 mH (Dalgalanma %10)</li>
+                            <li><b class="text-slate-400">C Değeri:</b> 20 &mu;F</li>
+                            <li><b class="text-slate-400">&Delta;I<sub>L</sub>:</b> ~1.02 A</li>
                         </ul>
                     </div>
 
-                    <div class="bg-slate-800/50 p-5 rounded-xl border border-slate-700">
-                        <h4 class="text-pink-400 font-bold mb-3">Kesintili Akım Modu (DCM)</h4>
-                        <ul class="space-y-2 text-sm text-slate-400">
-                            <li><b>Durum:</b> V<sub>g</sub> min (200V), I<sub>out</sub> max (8A)</li>
-                            <li><b>Doluluk Oranı (&lambda;):</b> 0.666 (%66.6)</li>
-                            <li><b>L Değeri:</b> &lt; 55 &mu;H (Seçilen: 50 &mu;H)</li>
-                            <li><b>C Değeri:</b> 50 &mu;F (Hesaplanan: 26.6 &mu;F)</li>
-                            <li><b>&Delta;I<sub>L</sub> (Dalgalanma):</b> ~53.19 A</li>
-                            <li><b>Çıkış Gerilimi Ort:</b> 421.6 V</li>
+                    <div class="bg-slate-800/80 p-6 rounded-xl border border-slate-700">
+                        <h4 class="text-pink-400 font-bold mb-3 text-lg border-b border-slate-700 pb-2">Kesintili Akım Modu (DCM)</h4>
+                        <ul class="space-y-3 text-sm text-slate-300">
+                            <li><b class="text-slate-400">Durum:</b> V<sub>g</sub> min (200V), I<sub>out</sub> max (8A)</li>
+                            <li><b class="text-slate-400">Doluluk Oranı (&lambda;):</b> 0.666</li>
+                            <li><b class="text-slate-400">L Değeri:</b> 50 &mu;H</li>
+                            <li><b class="text-slate-400">C Değeri:</b> 50 &mu;F</li>
+                            <li><b class="text-slate-400">&Delta;I<sub>L</sub>:</b> ~53.19 A</li>
                         </ul>
                     </div>
                 </div>
@@ -877,86 +588,63 @@
     </div>
 
     <!-- Devre Analizi Modalı -->
-    <div id="modal-devre" class="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 transition-all">
+    <div id="modal-devre" class="fixed inset-0 z-[100] bg-slate-900/90 backdrop-blur-sm hidden items-center justify-center p-4 transition-all">
         <div class="bg-slate-900 border border-slate-700 w-full max-w-3xl rounded-2xl shadow-2xl modal-content flex flex-col overflow-hidden">
             <div class="flex justify-between items-center p-6 border-b border-slate-800 sticky top-0 z-10 bg-slate-900">
                 <h3 class="text-xl font-bold text-white flex items-center">
-                    <i data-lucide="activity" class="w-6 h-6 mr-3 text-sky-400"></i> 
-                    <span class="lang-tr">Devre Analizi: RC, RL, RLC Sistemleri</span>
-                    <span class="lang-en hidden-lang">Circuit Analysis: RC, RL, RLC Systems</span>
+                    <i data-lucide="bar-chart-2" class="w-6 h-6 mr-3 text-sky-400"></i> 
+                    <span class="lang-tr">Devre Analizi: Diferansiyel Modelleme</span>
                 </h3>
                 <button type="button" onclick="closeModal('modal-devre')" class="text-slate-400 hover:text-white transition-colors"><i data-lucide="x" class="w-6 h-6"></i></button>
             </div>
-            <div class="p-8 space-y-6 text-slate-300 text-left">
-                
-                <div class="bg-slate-800/50 p-5 rounded-xl border border-slate-700">
-                    <h4 class="text-sky-400 font-bold mb-2">1. RC Devresi Analizi</h4>
-                    <p class="text-sm text-slate-400 leading-relaxed mb-2"><b>Parametreler:</b> R = 1 k&Omega;, C = 100 &mu;F, V<sub>0</sub> = 10 V.</p>
-                    <p class="text-sm text-slate-400 leading-relaxed"><b>Sonuç:</b> Zaman sabiti (&tau;) = R&times;C = 100 ms. Kondansatör gerilimi üstel olarak azalır. 5&tau; (500 ms) sonunda devre kararlı duruma ulaşır.</p>
-                </div>
-
-                <div class="bg-slate-800/50 p-5 rounded-xl border border-slate-700">
-                    <h4 class="text-sky-400 font-bold mb-2">2. RL Devresi Analizi</h4>
-                    <p class="text-sm text-slate-400 leading-relaxed mb-2"><b>Parametreler:</b> R = 50 &Omega;, L = 0.5 H, I<sub>0</sub> = 2 A.</p>
-                    <p class="text-sm text-slate-400 leading-relaxed"><b>Sonuç:</b> Zaman sabiti (&tau;) = L/R = 10 ms. Direncin yüksek olması nedeniyle endüktör akımı çok hızlı sönümlenir.</p>
-                </div>
-
-                <div class="bg-slate-800/50 p-5 rounded-xl border border-slate-700">
-                    <h4 class="text-sky-400 font-bold mb-2">3. Seri RLC Devresi Analizi</h4>
-                    <p class="text-sm text-slate-400 leading-relaxed mb-2"><b>Parametreler:</b> L = 1 H, C = 0.25 F, V<sub>0</sub> = 10 V. Doğal Frekans (&omega;<sub>0</sub>) = 2 rad/s.</p>
-                    <ul class="text-sm text-slate-400 list-disc list-inside space-y-1">
-                        <li><b>Aşırı Sönümlü (R=10&Omega;):</b> Salınım yok, sönüm katsayısı (&alpha;=5) &gt; &omega;<sub>0</sub>.</li>
-                        <li><b>Kritik Sönümlü (R=4&Omega;):</b> Kritik direnç. Salınım yapmadan en hızlı sıfıra oturma hali.</li>
-                        <li><b>Eksik Sönümlü (R=1&Omega;):</b> Enerji bobin ve kondansatör arasında salınarak (&omega;<sub>d</sub> &approx; 1.936 rad/s) azalır.</li>
+            <div class="p-8 space-y-4 text-slate-300 text-left">
+                <div class="bg-slate-800/80 p-6 rounded-xl border border-slate-700">
+                    <h4 class="text-sky-400 font-bold mb-2 text-lg">Seri RLC Devresi Analizi</h4>
+                    <p class="text-sm text-slate-400 leading-relaxed mb-4">L = 1 H, C = 0.25 F, V<sub>0</sub> = 10 V. Doğal Frekans (&omega;<sub>0</sub>) = 2 rad/s.</p>
+                    <ul class="text-sm text-slate-300 space-y-3">
+                        <li class="bg-slate-900/50 p-3 rounded-lg border border-slate-700"><b class="text-white block mb-1">Aşırı Sönümlü (R=10&Omega;):</b> Salınım yok, sönüm katsayısı (&alpha;=5) &gt; &omega;<sub>0</sub>.</li>
+                        <li class="bg-slate-900/50 p-3 rounded-lg border border-slate-700"><b class="text-white block mb-1">Kritik Sönümlü (R=4&Omega;):</b> Kritik direnç. Salınım yapmadan en hızlı sıfıra oturma hali.</li>
+                        <li class="bg-slate-900/50 p-3 rounded-lg border border-slate-700"><b class="text-white block mb-1">Eksik Sönümlü (R=1&Omega;):</b> Enerji bobin ve kondansatör arasında salınarak (&omega;<sub>d</sub> &approx; 1.936 rad/s) azalır.</li>
                     </ul>
                 </div>
-
             </div>
         </div>
     </div>
 
     <!-- Aydınlatma (AutoCAD & DIALux) Modalı -->
-    <div id="modal-autocad" class="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 transition-all">
+    <div id="modal-autocad" class="fixed inset-0 z-[100] bg-slate-900/90 backdrop-blur-sm hidden items-center justify-center p-4 transition-all">
         <div class="bg-slate-900 border border-slate-700 w-full max-w-3xl rounded-2xl shadow-2xl modal-content flex flex-col overflow-hidden">
             <div class="flex justify-between items-center p-6 border-b border-slate-800 sticky top-0 z-10 bg-slate-900">
                 <h3 class="text-xl font-bold text-white flex items-center">
-                    <i data-lucide="lightbulb" class="w-6 h-6 mr-3 text-orange-400"></i> 
+                    <i data-lucide="pen-tool" class="w-6 h-6 mr-3 text-orange-400"></i> 
                     <span class="lang-tr">İç Tesisat ve Aydınlatma Tasarımı</span>
-                    <span class="lang-en hidden-lang">Indoor Wiring and Lighting Design</span>
                 </h3>
                 <button type="button" onclick="closeModal('modal-autocad')" class="text-slate-400 hover:text-white transition-colors"><i data-lucide="x" class="w-6 h-6"></i></button>
             </div>
             <div class="p-8 space-y-4 text-slate-300 text-left">
                 <div class="bg-slate-800/50 w-full h-48 rounded-xl flex items-center justify-center border border-slate-700 mb-6 relative">
-                    <span class="text-slate-400 font-medium flex items-center lang-tr"><i data-lucide="pen-tool" class="w-5 h-5 mr-2"></i>DIALux 3D Görseli veya DWG Planı</span>
-                    <span class="text-slate-400 font-medium flex items-center lang-en hidden-lang"><i data-lucide="pen-tool" class="w-5 h-5 mr-2"></i>DIALux 3D Render or DWG Plan</span>
+                    <span class="text-slate-400 font-medium flex items-center"><i data-lucide="image" class="w-5 h-5 mr-2"></i>DIALux & AutoCAD Tasarım Çıktıları</span>
                 </div>
-                <h4 class="font-bold text-white text-lg lang-tr">Tasarım Metodolojisi</h4>
-                <h4 class="font-bold text-white text-lg lang-en hidden-lang">Design Methodology</h4>
-                <p class="text-sm leading-relaxed text-slate-400 lang-tr">AutoCAD kullanılarak iç tesisat plan çizimleri, linye/sorti hesaplamaları ve gerilim düşümü analizleri gerçekleştirilmiştir. Ek olarak DIALux üzerinden detaylı mimari aydınlatma simülasyonları yapılarak lüks değerleri optimize edilmiştir.</p>
-                <p class="text-sm leading-relaxed text-slate-400 lang-en hidden-lang">Indoor wiring plans, line calculations, and voltage drop analyses were carried out using AutoCAD. Additionally, detailed architectural lighting simulations were performed via DIALux to optimize lux values.</p>
+                <h4 class="font-bold text-white text-lg">Tasarım Metodolojisi</h4>
+                <p class="text-sm leading-relaxed text-slate-400">AutoCAD kullanılarak iç tesisat plan çizimleri, linye/sorti hesaplamaları ve gerilim düşümü analizleri gerçekleştirilmiştir. Ek olarak DIALux üzerinden detaylı mimari aydınlatma simülasyonları yapılarak lüks değerleri optimize edilmiştir.</p>
             </div>
         </div>
     </div>
 
     <!-- BESS & Arbitraj Modalı -->
-    <div id="modal-bess" class="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 transition-all">
-        <div class="bg-slate-900 border border-slate-700 w-full max-w-4xl rounded-2xl shadow-2xl modal-content flex flex-col overflow-hidden">
+    <div id="modal-bess" class="fixed inset-0 z-[100] bg-slate-900/90 backdrop-blur-sm hidden items-center justify-center p-4 transition-all">
+        <div class="bg-slate-900 border border-slate-700 w-full max-w-3xl rounded-2xl shadow-2xl modal-content flex flex-col overflow-hidden">
             <div class="flex justify-between items-center p-6 border-b border-slate-800 sticky top-0 bg-slate-900 z-10">
                 <h3 class="text-2xl font-bold text-white flex items-center">
-                    <i data-lucide="battery-medium" class="w-6 h-6 mr-3 text-emerald-400"></i> 
-                    <span class="lang-tr">BESS & Veri Analizi Projesi</span>
-                    <span class="lang-en hidden-lang">BESS & Data Analysis Project</span>
+                    <i data-lucide="database" class="w-6 h-6 mr-3 text-emerald-400"></i> 
+                    <span class="lang-tr">BESS & Veri Analizi</span>
                 </h3>
                 <button type="button" onclick="closeModal('modal-bess')" class="text-slate-400 hover:text-white transition-colors"><i data-lucide="x" class="w-6 h-6"></i></button>
             </div>
-            <div class="p-8 space-y-8 text-slate-300 text-left">
-                <div>
-                    <h4 class="text-lg font-bold text-white mb-3 border-l-4 border-emerald-500 pl-3 lang-tr">Python ile EPİAŞ Verisi Üzerinden Batarya Arbitrajı</h4>
-                    <h4 class="text-lg font-bold text-white mb-3 border-l-4 border-emerald-500 pl-3 lang-en hidden-lang">Battery Arbitrage using EPİAŞ Data with Python</h4>
-                    <p class="text-sm mb-4 leading-relaxed text-slate-400 lang-tr">EPİAŞ Şeffaflık Platformu'ndan alınan saatlik PTF verileri kullanılarak, "en düşük fiyattan şarj edip, pik saatlerde yüksek fiyattan deşarj etme" stratejisini Python (Pandas) ile modelledim.</p>
-                    <p class="text-sm mb-4 leading-relaxed text-slate-400 lang-en hidden-lang">Modeled a strategy of "charging at the lowest price and discharging at peak hours at high price" using hourly Market Clearing Price (MCP) data from EPİAŞ Transparency Platform with Python (Pandas).</p>
-                    <div class="bg-slate-950 p-5 rounded-xl font-mono text-xs overflow-x-auto border border-slate-800 text-emerald-400 shadow-inner">
+            <div class="p-8 space-y-6 text-slate-300 text-left">
+                <h4 class="text-lg font-bold text-white mb-2 border-l-4 border-emerald-500 pl-3">Python ile EPİAŞ Verisi Üzerinden Batarya Arbitrajı</h4>
+                <p class="text-sm mb-4 leading-relaxed text-slate-400">EPİAŞ Şeffaflık Platformu'ndan alınan saatlik PTF verileri kullanılarak, "en düşük fiyattan şarj edip, pik saatlerde yüksek fiyattan deşarj etme" stratejisini Python (Pandas) ile modelledim.</p>
+                <div class="bg-slate-950 p-5 rounded-xl font-mono text-sm overflow-x-auto border border-slate-800 text-emerald-400 shadow-inner">
 <pre><code>import pandas as pd
 # EPİAŞ Saatlik PTF verisi simülasyonu (TL/MWh)
 fiyatlar = [1200, 1100, 950, 1050, 2100, 2700, 2600, 1400] 
@@ -967,221 +655,54 @@ en_ucuz = df.nsmallest(2, 'PTF')
 en_pahali = df.nlargest(2, 'PTF')
 net_kar = (en_pahali['PTF'].sum() * 0.90) - en_ucuz['PTF'].sum()
 print(f"Günlük Arbitraj Karı: {net_kar} TL")</code></pre>
-                    </div>
                 </div>
             </div>
-        </div>
-    </div>
-    <!-- AKSA BESS Staj Detay Modalı -->
-    <div id="modal-aksabess" class="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 transition-all">
-        <div class="bg-slate-900 border border-slate-700 w-full max-w-4xl rounded-2xl shadow-2xl modal-content flex flex-col overflow-hidden">
-            <div class="flex justify-between items-center p-6 border-b border-slate-800 sticky top-0 bg-slate-900 z-10">
-                <h3 class="text-xl font-bold text-white flex items-center">
-                    <i data-lucide="battery-medium" class="w-6 h-6 mr-3 text-sky-400"></i>
-                    <span class="lang-tr">AKSA BESS Stajı: Yaptığım Çalışmalar</span>
-                    <span class="lang-en hidden-lang">AKSA BESS Internship: My Work</span>
-                </h3>
-                <button type="button" onclick="closeModal('modal-aksabess')" class="text-slate-400 hover:text-white transition-colors"><i data-lucide="x" class="w-6 h-6"></i></button>
-            </div>
-
-            <div class="p-8 space-y-6 text-slate-300 text-left">
-                <!-- CAPEX Otomasyonu -->
-                <div class="bg-slate-800/50 p-5 rounded-xl border border-slate-700">
-                    <h4 class="text-sky-400 font-bold mb-2 flex items-center"><i data-lucide="calculator" class="w-4 h-4 mr-2"></i> <span class="lang-tr">CAPEX Otomasyonu</span><span class="lang-en hidden-lang">CAPEX Automation</span></h4>
-                    <p class="text-sm text-slate-400 leading-relaxed lang-tr">BESS projelerinin yatırım maliyeti (CAPEX) hesaplamalarını manuel Excel tekrarından çıkarıp, ekipman (batarya modülü, PCS/inverter, trafo, konteyner, saha işleri) ve güç/kapasite (MW/MWh) parametrelerine göre otomatik güncellenen bir hesaplama şablonu üzerinde çalıştım. Amaç, farklı proje senaryolarında (kurulu güç, depolama süresi, saha koşulları) maliyet kalemlerinin hızlıca kıyaslanabilmesiydi.</p>
-                    <p class="text-sm text-slate-400 leading-relaxed lang-en hidden-lang">I worked on taking BESS project CAPEX calculations out of manual, repetitive spreadsheet work and into a template that auto-updates based on equipment (battery modules, PCS/inverter, transformer, container, site works) and power/capacity (MW/MWh) parameters — so different project scenarios (installed power, storage duration, site conditions) could be compared quickly.</p>
-                    <!-- ILGIN: Buraya varsa somut CAPEX otomasyon detaylarını (kullandığın araç: Excel/VBA/Python, kısalttığın süre, örnek proje ölçeği vb.) ekleyebilirsin. -->
-                </div>
-
-                <!-- XLPE Kablo Hesapları -->
-                <div class="bg-slate-800/50 p-5 rounded-xl border border-slate-700">
-                    <h4 class="text-sky-400 font-bold mb-2 flex items-center"><i data-lucide="cable" class="w-4 h-4 mr-2"></i> <span class="lang-tr">XLPE Kablo Kesit Hesapları</span><span class="lang-en hidden-lang">XLPE Cable Sizing Calculations</span></h4>
-                    <p class="text-sm text-slate-400 leading-relaxed lang-tr">Orta gerilim XLPE (çapraz bağlı polietilen izoleli) güç kablolarının kesit seçiminde akım taşıma kapasitesi, gerilim düşümü ve kısa devre termik dayanımı kriterlerine göre hesaplamalar yaptım; BESS konteynerlerinden trafo merkezine kadar olan kablo güzergâhlarının boyutlandırılmasına katkı sağladım.</p>
-                    <p class="text-sm text-slate-400 leading-relaxed lang-en hidden-lang">I performed sizing calculations for medium-voltage XLPE (cross-linked polyethylene insulated) power cables based on current-carrying capacity, voltage drop, and short-circuit thermal withstand criteria; contributed to sizing cable routes from the BESS containers to the substation.</p>
-                    <!-- ILGIN: Buraya varsa örnek kesit değerleri, gerilim seviyesi (örn. 34.5 kV) veya kullandığın standart (IEC 60502 vb.) eklenebilir. -->
-                </div>
-
-                <!-- AutoCAD Çizimleri -->
-                <div class="bg-slate-800/50 p-5 rounded-xl border border-slate-700">
-                    <h4 class="text-sky-400 font-bold mb-2 flex items-center"><i data-lucide="pen-tool" class="w-4 h-4 mr-2"></i> <span class="lang-tr">AutoCAD Çizimleri</span><span class="lang-en hidden-lang">AutoCAD Drawings</span></h4>
-                    <p class="text-sm text-slate-400 leading-relaxed lang-tr">AutoCAD üzerinde BESS sahasına ait tek hat şemaları ve kablo güzergâh/yerleşim çizimlerinin hazırlanmasında ve güncellenmesinde yer aldım; saha yerleşim planlaması ile elektriksel tasarımın tutarlı ilerlemesini sağladım.</p>
-                    <p class="text-sm text-slate-400 leading-relaxed lang-en hidden-lang">I took part in preparing and updating single-line diagrams and cable routing/layout drawings for the BESS site in AutoCAD, helping keep site layout planning aligned with the electrical design.</p>
-                </div>
-
-                <div class="bg-slate-800/50 w-full h-40 rounded-xl flex items-center justify-center border border-slate-700 relative">
-                    <span class="text-slate-400 font-medium flex items-center text-sm lang-tr"><i data-lucide="image" class="w-5 h-5 mr-2"></i>AutoCAD Çizim Görseli Buraya Eklenecek</span>
-                    <span class="text-slate-400 font-medium flex items-center text-sm lang-en hidden-lang"><i data-lucide="image" class="w-5 h-5 mr-2"></i>AutoCAD Drawing Image Here</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Akıllı Ev Modalı -->
-    <div id="modal-akilliev" class="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 transition-all">
-        <div class="bg-slate-900 border border-slate-700 w-full max-w-3xl rounded-2xl shadow-2xl modal-content flex flex-col overflow-hidden">
-            <div class="flex justify-between items-center p-6 border-b border-slate-800 sticky top-0 z-10 bg-slate-900">
-                <h3 class="text-xl font-bold text-white flex items-center">
-                    <i data-lucide="home" class="w-6 h-6 mr-3 text-yellow-400"></i> 
-                    <span class="lang-tr">Akıllı Ev Sistemleri</span>
-                    <span class="lang-en hidden-lang">Smart Home Systems</span>
-                </h3>
-                <button type="button" onclick="closeModal('modal-akilliev')" class="text-slate-400 hover:text-white transition-colors"><i data-lucide="x" class="w-6 h-6"></i></button>
-            </div>
-            <div class="p-8 space-y-4 text-slate-300 text-left">
-                <h4 class="font-bold text-white text-lg lang-tr">Şebeke Rahatlatma Algoritması</h4>
-                <h4 class="font-bold text-white text-lg lang-en hidden-lang">Grid Relief Algorithm</h4>
-                <p class="text-sm leading-relaxed text-slate-400 lang-tr">Puant saatlerde yüksek enerji tüketen cihazların (çamaşır makinesi, ısıtıcı vb.) çalışmasını şebeke yoğunluğunun daha az olduğu saatlere kaydırarak, genel enerji tüketim maliyetini optimize eden bir algoritma tasarımı.</p>
-                <p class="text-sm leading-relaxed text-slate-400 lang-en hidden-lang">An algorithm design that optimizes overall energy consumption costs by shifting the operation of high energy-consuming devices to hours when grid congestion is lower.</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- TÜBİTAK Modalı -->
-    <div id="modal-tubitak" class="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 transition-all">
-        <div class="bg-slate-900 border border-slate-700 w-full max-w-3xl rounded-2xl shadow-2xl modal-content flex flex-col overflow-hidden">
-            <div class="flex justify-between items-center p-6 border-b border-slate-800 sticky top-0 z-10 bg-slate-900">
-                <h3 class="text-xl font-bold text-white flex items-center">
-                    <i data-lucide="wind" class="w-6 h-6 mr-3 text-red-400"></i> 
-                    <span class="lang-tr">Yenilenebilir Enerjide Üretim Tahminlemesi</span>
-                    <span class="lang-en hidden-lang">Generation Forecasting in Renewable Energy</span>
-                </h3>
-                <button type="button" onclick="closeModal('modal-tubitak')" class="text-slate-400 hover:text-white transition-colors"><i data-lucide="x" class="w-6 h-6"></i></button>
-            </div>
-            <div class="p-8 space-y-4 text-slate-300 text-left">
-                <h4 class="font-bold text-white text-lg lang-tr">TÜBİTAK 2209-B Proje Özeti</h4>
-                <h4 class="font-bold text-white text-lg lang-en hidden-lang">TÜBİTAK 2209-B Project Summary</h4>
-                <p class="text-sm leading-relaxed text-slate-400 lang-tr">Sanayiye yönelik lisans araştırma projeleri kapsamında; rüzgar ve güneş enerjisi tesislerinden alınan tarihsel meteorolojik veriler kullanılarak geleceğe yönelik elektrik üretim kapasitesinin makine öğrenmesi algoritmalarıyla tahminlenmesi.</p>
-                <p class="text-sm leading-relaxed text-slate-400 lang-en hidden-lang">Within the scope of industry-oriented undergraduate research projects; predicting future electricity generation capacity using machine learning algorithms based on historical meteorological data from wind and solar power plants.</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Siemens SIMARIS Modalı -->
-    <div id="modal-simaris" class="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 transition-all">
-        <div class="bg-slate-900 border border-slate-700 w-full max-w-3xl rounded-2xl shadow-2xl modal-content flex flex-col overflow-hidden">
-            <div class="flex justify-between items-center p-6 border-b border-slate-800 sticky top-0 z-10 bg-slate-900">
-                <h3 class="text-xl font-bold text-white flex items-center">
-                    <i data-lucide="factory" class="w-6 h-6 mr-3 text-sky-400"></i> 
-                    <span class="lang-tr">Alçak Gerilim Güç Dağıtım Projesi</span>
-                    <span class="lang-en hidden-lang">Low Voltage Power Distribution Project</span>
-                </h3>
-                <button type="button" onclick="closeModal('modal-simaris')" class="text-slate-400 hover:text-white transition-colors"><i data-lucide="x" class="w-6 h-6"></i></button>
-            </div>
-            <div class="p-8 space-y-4 text-slate-300 text-left">
-                <h4 class="font-bold text-white text-lg lang-tr">SIMARIS Tasarımı</h4>
-                <h4 class="font-bold text-white text-lg lang-en hidden-lang">SIMARIS Design</h4>
-                <p class="text-sm leading-relaxed text-slate-400 lang-tr">Siemens SIMARIS Design yazılımı kullanılarak endüstriyel tesisler için şalt cihazı seçimi, kablo kesit tayini ve kısa devre akım hesaplamalarınınIEC standartlarına uygun olarak yapıldığı global yarışma projesi.</p>
-                <p class="text-sm leading-relaxed text-slate-400 lang-en hidden-lang">A global competition project where switchgear selection, cable sizing, and short circuit current calculations for industrial facilities are made in accordance with IEC standards using Siemens SIMARIS Design software.</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- ================= ETKİNLİK FOTOĞRAF MODALLARI ================= -->
-
-    <div id="modal-turek" class="fixed inset-0 z-[100] bg-slate-900/90 backdrop-blur-sm hidden items-center justify-center p-4">
-        <div class="w-full max-w-4xl flex flex-col items-center">
-            <div class="w-full flex justify-end mb-4">
-                <button type="button" onclick="closeModal('modal-turek')" class="text-white hover:text-sky-400 transition-colors"><i data-lucide="x" class="w-10 h-10"></i></button>
-            </div>
-            <div class="bg-slate-800 w-full h-[400px] sm:h-[600px] border border-slate-700 rounded-2xl flex items-center justify-center overflow-hidden relative shadow-2xl">
-                <i data-lucide="image" class="w-16 h-16 text-slate-600"></i>
-                <p class="absolute bottom-10 text-slate-400 text-sm font-medium text-center px-4 lang-tr">TÜREK 2026 Fotoğrafı Buraya Eklenecek</p>
-                <p class="absolute bottom-10 text-slate-400 text-sm font-medium text-center px-4 lang-en hidden-lang">TÜREK 2026 Photo Here</p>
-            </div>
-            <h3 class="text-2xl font-bold text-white mt-6 lang-tr">TÜREK 2026 Rüzgar Enerjisi Kongresi</h3>
-            <h3 class="text-2xl font-bold text-white mt-6 lang-en hidden-lang">TÜREK 2026 Wind Energy Congress</h3>
-        </div>
-    </div>
-
-    <div id="modal-erasmus" class="fixed inset-0 z-[100] bg-slate-900/90 backdrop-blur-sm hidden items-center justify-center p-4">
-        <div class="w-full max-w-4xl flex flex-col items-center">
-            <div class="w-full flex justify-end mb-4">
-                <button type="button" onclick="closeModal('modal-erasmus')" class="text-white hover:text-purple-400 transition-colors"><i data-lucide="x" class="w-10 h-10"></i></button>
-            </div>
-            <div class="bg-slate-800 w-full h-[400px] sm:h-[600px] border border-slate-700 rounded-2xl flex items-center justify-center overflow-hidden relative shadow-2xl">
-                <i data-lucide="plane" class="w-16 h-16 text-slate-600"></i>
-                <p class="absolute bottom-10 text-slate-400 text-sm font-medium text-center px-4 lang-tr">Erasmus+ Fotoğrafı Buraya Eklenecek</p>
-                <p class="absolute bottom-10 text-slate-400 text-sm font-medium text-center px-4 lang-en hidden-lang">Erasmus+ Photo Here</p>
-            </div>
-            <h3 class="text-2xl font-bold text-white mt-6">Erasmus+</h3>
-        </div>
-    </div>
-
-    <div id="modal-zena" class="fixed inset-0 z-[100] bg-slate-900/90 backdrop-blur-sm hidden items-center justify-center p-4">
-        <div class="w-full max-w-4xl flex flex-col items-center">
-            <div class="w-full flex justify-end mb-4">
-                <button type="button" onclick="closeModal('modal-zena')" class="text-white hover:text-orange-400 transition-colors"><i data-lucide="x" class="w-10 h-10"></i></button>
-            </div>
-            <div class="bg-slate-800 w-full h-[400px] sm:h-[600px] border border-slate-700 rounded-2xl flex items-center justify-center overflow-hidden relative shadow-2xl">
-                <i data-lucide="award" class="w-16 h-16 text-slate-600"></i>
-                <p class="absolute bottom-10 text-slate-400 text-sm font-medium text-center px-4 lang-tr">Zena Enerji Sertifikası Buraya Eklenecek</p>
-                <p class="absolute bottom-10 text-slate-400 text-sm font-medium text-center px-4 lang-en hidden-lang">Zena Energy Certificate Here</p>
-            </div>
-            <h3 class="text-2xl font-bold text-white mt-6 lang-tr">Zena Enerji GES Eğitimi</h3>
-            <h3 class="text-2xl font-bold text-white mt-6 lang-en hidden-lang">Zena Energy Solar Power Plant Training</h3>
         </div>
     </div>
 
     <!-- GERÇEK QR KOD -->
-    <div id="modal-qr" class="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 transition-all">
-        <div class="bg-slate-900 border border-slate-700 w-full max-w-md rounded-3xl shadow-2xl p-8 flex flex-col items-center text-center relative overflow-hidden">
+    <div id="modal-qr" class="fixed inset-0 z-[100] bg-slate-900/80 backdrop-blur-md hidden items-center justify-center p-4 transition-all">
+        <div class="bg-slate-900 border border-slate-700 w-full max-w-sm rounded-3xl shadow-2xl p-8 flex flex-col items-center text-center relative overflow-hidden">
             <div class="absolute top-0 w-full h-2 bg-sky-500"></div>
             <button type="button" onclick="closeModal('modal-qr')" class="absolute top-5 right-5 text-slate-400 hover:text-white transition-colors"><i data-lucide="x" class="w-6 h-6"></i></button>
-            <h3 class="text-2xl font-extrabold text-white mb-2 mt-4 lang-tr">İletişim ve CV</h3>
-            <h3 class="text-2xl font-extrabold text-white mb-2 mt-4 lang-en hidden-lang">Contact and CV</h3>
-            <p class="text-sm text-slate-400 mb-8 font-medium lang-tr">LinkedIn profilime anında ulaşmak için bu QR kodu okutabilirsiniz.</p>
-            <p class="text-sm text-slate-400 mb-8 font-medium lang-en hidden-lang">Scan this QR code to instantly access my LinkedIn profile.</p>
+            <h3 class="text-2xl font-extrabold text-white mb-2 mt-4 lang-tr">İletişim ve Bağlantı</h3>
+            <h3 class="text-2xl font-extrabold text-white mb-2 mt-4 lang-en hidden-lang">Contact & Connect</h3>
+            <p class="text-sm text-slate-400 mb-8 font-medium lang-tr">LinkedIn profilime hızlıca ulaşmak için bu kodu okutun.</p>
+            <p class="text-sm text-slate-400 mb-8 font-medium lang-en hidden-lang">Scan to quickly access my LinkedIn profile.</p>
             
             <div class="bg-white p-4 rounded-2xl border border-slate-200 mb-8">
                 <!-- Gerçek QR Kod API (LinkedIn profiline gider) -->
                 <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&color=0f172a&data=https://linkedin.com/in/ilginakkoyun/" alt="LinkedIn QR Kod" class="w-48 h-48 rounded-lg shadow-sm">
             </div>
-
-            <a href="#" download class="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-3.5 px-4 rounded-xl transition-all shadow-md flex items-center justify-center">
-                <i data-lucide="file-down" class="w-5 h-5 mr-2"></i> 
-                <span class="lang-tr">CV'mi PDF Olarak İndir</span>
-                <span class="lang-en hidden-lang">Download My CV as PDF</span>
-            </a>
         </div>
     </div>
 
     <!-- ENERJİ GÜNLÜKLERİ -->
-    <div id="modal-diaries" class="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div id="modal-diaries" class="fixed inset-0 z-[100] bg-slate-900/80 backdrop-blur-sm hidden items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-700 w-full max-w-3xl rounded-2xl shadow-2xl modal-content flex flex-col overflow-hidden">
             <div class="flex justify-between items-center p-6 border-b border-slate-800 bg-slate-900 sticky top-0 z-10">
                 <h3 class="text-xl font-bold text-white flex items-center">
                     <i data-lucide="book-open" class="w-6 h-6 mr-3 text-sky-400"></i> 
-                    <span class="lang-tr">Enerji Günlükleri & Sektör Notları</span>
-                    <span class="lang-en hidden-lang">Energy Diaries & Sector Notes</span>
+                    <span class="lang-tr">Enerji Günlükleri & Notlar</span>
+                    <span class="lang-en hidden-lang">Energy Diaries & Notes</span>
                 </h3>
                 <button type="button" onclick="closeModal('modal-diaries')" class="text-slate-400 hover:text-white transition-colors"><i data-lucide="x" class="w-6 h-6"></i></button>
             </div>
             
             <div class="p-8 space-y-8 text-slate-300 text-left bg-slate-900">
                 <div class="border border-slate-700 bg-slate-800/50 p-6 rounded-2xl shadow-sm">
-                    <h4 class="text-sky-400 font-extrabold text-lg mb-4 flex items-center lang-tr">Endüstriyel Batarya Tipleri ve Kullanım Alanları</h4>
-                    <h4 class="text-sky-400 font-extrabold text-lg mb-4 flex items-center lang-en hidden-lang">Industrial Battery Types and Applications</h4>
-                    <p class="text-sm text-slate-400 leading-relaxed mb-4 lang-tr">Enerji depolama sistemleri tasarlanırken projenin ihtiyacına göre doğru batarya kimyası seçilmelidir. Başlıca 4 batarya tipi:</p>
-                    <p class="text-sm text-slate-400 leading-relaxed mb-4 lang-en hidden-lang">When designing energy storage systems, the correct battery chemistry should be selected according to the needs of the project. 4 main battery types:</p>
+                    <h4 class="text-sky-400 font-extrabold text-lg mb-4 lang-tr">Endüstriyel Batarya Tipleri</h4>
+                    <h4 class="text-sky-400 font-extrabold text-lg mb-4 lang-en hidden-lang">Industrial Battery Types</h4>
                     <ul class="space-y-3 ml-2">
-                        <li class="flex items-start text-sm text-slate-400"><i data-lucide="check-circle" class="w-4 h-4 text-sky-500 mr-2 mt-0.5 flex-shrink-0"></i> <span><b class="text-white">Lityum Demir Fosfat (LFP):</b> <span class="lang-tr">Şebeke ölçekli BESS'lerde en çok tercih edilen, termal kaçak riski düşük ve döngü ömrü uzun olan tiptir.</span><span class="lang-en hidden-lang">The most preferred type in grid-scale BESS, with low thermal runaway risk and long cycle life.</span></span></li>
-                        <li class="flex items-start text-sm text-slate-400"><i data-lucide="check-circle" class="w-4 h-4 text-sky-500 mr-2 mt-0.5 flex-shrink-0"></i> <span><b class="text-white">Nikel Manganez Kobalt (NMC):</b> <span class="lang-tr">Enerji yoğunluğu çok yüksektir, genellikle elektrikli araçlarda (EV) tercih edilir.</span><span class="lang-en hidden-lang">Very high energy density, generally preferred in electric vehicles (EV).</span></span></li>
-                        <li class="flex items-start text-sm text-slate-400"><i data-lucide="check-circle" class="w-4 h-4 text-sky-500 mr-2 mt-0.5 flex-shrink-0"></i> <span><b class="text-white">Lityum Titanat (LTO):</b> <span class="lang-tr">Çok hızlı şarj-deşarj olabilir, ömrü inanılmaz uzundur ancak pahalıdır.</span><span class="lang-en hidden-lang">Can charge-discharge very fast, incredibly long life but expensive.</span></span></li>
-                        <li class="flex items-start text-sm text-slate-400"><i data-lucide="check-circle" class="w-4 h-4 text-sky-500 mr-2 mt-0.5 flex-shrink-0"></i> <span><b class="text-white">Kurşun-Asit (Lead-Acid):</b> <span class="lang-tr">Geleneksel sistemlerdir, maliyeti düşüktür ancak döngü ömrü kısadır. Kesintisiz güç kaynaklarında (UPS) sıkça kullanılır.</span><span class="lang-en hidden-lang">Traditional systems, low cost but short cycle life. Frequently used in Uninterruptible Power Supplies (UPS).</span></span></li>
+                        <li class="flex items-start text-sm text-slate-400"><i data-lucide="check-circle" class="w-4 h-4 text-sky-500 mr-2 mt-0.5 flex-shrink-0"></i> <span><b class="text-white">Lityum Demir Fosfat (LFP):</b> Şebeke ölçekli BESS'lerde en çok tercih edilen, termal kaçak riski düşük ve döngü ömrü uzun olan tiptir.</span></li>
+                        <li class="flex items-start text-sm text-slate-400"><i data-lucide="check-circle" class="w-4 h-4 text-sky-500 mr-2 mt-0.5 flex-shrink-0"></i> <span><b class="text-white">NMC:</b> Enerji yoğunluğu çok yüksektir, genellikle elektrikli araçlarda (EV) tercih edilir.</span></li>
+                        <li class="flex items-start text-sm text-slate-400"><i data-lucide="check-circle" class="w-4 h-4 text-sky-500 mr-2 mt-0.5 flex-shrink-0"></i> <span><b class="text-white">Kurşun-Asit:</b> Geleneksel sistemlerdir, maliyeti düşüktür ancak döngü ömrü kısadır. (UPS sistemleri)</span></li>
                     </ul>
-                </div>
-
-                <div class="border border-slate-700 bg-slate-800/50 p-6 rounded-2xl shadow-sm">
-                    <h4 class="text-sky-400 font-extrabold text-lg mb-3 lang-tr">EPİAŞ ve Gün Öncesi Piyasası Fırsatları</h4>
-                    <h4 class="text-sky-400 font-extrabold text-lg mb-3 lang-en hidden-lang">EPİAŞ and Day-Ahead Market Opportunities</h4>
-                    <p class="text-sm text-slate-400 leading-relaxed mb-4 lang-tr">Akşam 17:00 - 20:00 arası puant saatlerde PTF fiyatları tavan yapıyor. Rüzgar ve Güneş yanına entegre edilecek 1 saatlik (1C) batarya sistemleri arbitraj için inanılmaz karlı bir iş modeli oluşturuyor.</p>
-                    <p class="text-sm text-slate-400 leading-relaxed mb-4 lang-en hidden-lang">Market Clearing Prices peak during peak hours between 17:00 and 20:00 in the evening. 1-hour (1C) battery systems to be integrated alongside Wind and Solar create an incredibly profitable business model for arbitrage.</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Scripts -->
     <script>
         lucide.createIcons();
         
@@ -1230,82 +751,6 @@ print(f"Günlük Arbitraj Karı: {net_kar} TL")</code></pre>
                 document.body.style.overflow = 'auto';
             }
         }
-
-        // ==== Şebeke Frekansı Widget: Küçült/Büyüt ====
-        function toggleFreqWidget() {
-            const widget = document.getElementById('freq-widget');
-            const icon = document.getElementById('freq-toggle-icon');
-            widget.classList.toggle('freq-collapsed');
-            if (icon) icon.style.transform = widget.classList.contains('freq-collapsed') ? 'rotate(-90deg)' : 'rotate(0deg)';
-        }
-
-        // ==== Şebeke Frekansı Simülasyonu ====
-        // Not: TEİAŞ'ın canlı frekans verisine tarayıcıdan doğrudan (CORS/kimlik doğrulamasız)
-        // erişilebilen açık bir API bulunmuyor. Bu widget, Elektrik Şebeke Yönetmeliği'nde
-        // tanımlanan 49,8-50,2 Hz işletme bandını referans alan, ortalamaya-dönen (mean-reverting)
-        // gerçekçi bir simülasyondur. Gerçek zamanlı bir veri kaynağınız varsa (EPİAŞ Şeffaflık,
-        // özel bir SCADA beslemesi vb.) stepFrequency() içindeki rastgele üretimi o kaynaktan
-        // gelen değerle değiştirmeniz yeterli.
-        (function () {
-            const freqEl = document.getElementById('freq-value');
-            const canvas = document.getElementById('freq-canvas');
-            const dot = document.querySelector('#freq-widget .freq-live-dot');
-            if (!freqEl || !canvas) return;
-            const ctx = canvas.getContext('2d');
-
-            let freq = 50.00;
-            const history = new Array(50).fill(50.00);
-            let t = 0;
-
-            function stepFrequency() {
-                const pull = (50.00 - freq) * 0.10;
-                const noise = (Math.random() - 0.5) * 0.035;
-                freq += pull + noise;
-                freq = Math.max(49.90, Math.min(50.10, freq));
-
-                history.push(freq);
-                if (history.length > 50) history.shift();
-
-                freqEl.textContent = freq.toFixed(3);
-                const dev = Math.abs(freq - 50);
-                if (dev > 0.045) {
-                    freqEl.className = 'text-base font-black text-amber-400 tabular-nums';
-                    if (dot) dot.className = 'freq-live-dot w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0';
-                } else {
-                    freqEl.className = 'text-base font-black text-white tabular-nums';
-                    if (dot) dot.className = 'freq-live-dot w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0';
-                }
-            }
-
-            function drawWave() {
-                t += 1;
-                const w = canvas.width, h = canvas.height;
-                ctx.clearRect(0, 0, w, h);
-                ctx.beginPath();
-                const step = w / (history.length - 1);
-                history.forEach((v, i) => {
-                    const jitter = Math.sin(t * 0.06 + i * 0.7) * 0.8;
-                    const y = h / 2 - (v - 50) * 90 + jitter;
-                    const x = i * step;
-                    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-                });
-                const grad = ctx.createLinearGradient(0, 0, w, 0);
-                grad.addColorStop(0, 'rgba(56,189,248,0.05)');
-                grad.addColorStop(1, 'rgba(56,189,248,0.95)');
-                ctx.strokeStyle = grad;
-                ctx.lineWidth = 1.8;
-                ctx.stroke();
-            }
-
-            function loop() {
-                drawWave();
-                requestAnimationFrame(loop);
-            }
-
-            stepFrequency();
-            setInterval(stepFrequency, 1000);
-            loop();
-        })();
     </script>
 </body>
 </html>
