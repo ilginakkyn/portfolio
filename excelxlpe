@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BESS DC Kablo Hesaplama</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; color: #333; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        h2 { color: #0056b3; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .form-group { display: flex; justify-content: space-between; margin-bottom: 15px; }
+        .form-group label { flex: 1; font-weight: bold; margin-top: 8px; }
+        .form-group input, .form-group select { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 5px; }
+        button { width: 100%; padding: 12px; background-color: #0056b3; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; margin-top: 10px; }
+        button:hover { background-color: #004494; }
+        .result-box { margin-top: 20px; padding: 20px; background-color: #e9ecef; border-radius: 5px; }
+        .result-item { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px dashed #ccc; padding-bottom: 5px; }
+        .uygun { color: green; font-weight: bold; }
+        .hata { color: red; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>DC Kablo Kesit ve Gerilim Düşümü Hesabı</h2>
+    
+    <!-- Girdi Formu -->
+    <div class="form-group">
+        <label>Güç (P) - kW:</label>
+        <input type="number" id="guc" value="100">
+    </div>
+    <div class="form-group">
+        <label>Sistem Gerilimi (Udc) - V:</label>
+        <input type="number" id="gerilim" value="1500">
+    </div>
+    <div class="form-group">
+        <label>Metraj (m):</label>
+        <input type="number" id="metraj" value="129.84">
+    </div>
+    <div class="form-group">
+        <label>Paralel Kablo Sayısı (Kutup Başına):</label>
+        <input type="number" id="paralel" value="3">
+    </div>
+    <div class="form-group">
+        <label>Kablo Kesiti (XLPE):</label>
+        <select id="kesit">
+            <option value="1x35/16">1x35/16</option>
+            <option value="1x50/16">1x50/16</option>
+            <option value="1x70/16">1x70/16</option>
+            <option value="1x120/16" selected>1x120/16</option>
+            <option value="1x240/25">1x240/25</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label>Sıcaklık Düzeltme Faktörü (f1):</label>
+        <input type="number" step="0.01" id="f1" value="1.00">
+    </div>
+    <div class="form-group">
+        <label>Grup Düzeltme Faktörü (f2):</label>
+        <input type="number" step="0.01" id="f2" value="0.53">
+    </div>
+
+    <button onclick="hesapla()">Hesapla</button>
+
+    <!-- Sonuçların Gösterildiği Alan -->
+    <div class="result-box" id="sonuclar" style="display:none;">
+        <div class="result-item"><span>Toplam Sistem Akımı:</span> <span id="res-toplam-akim"></span></div>
+        <div class="result-item"><span>Kablo Başına Düşen Akım:</span> <span id="res-kablo-akim"></span></div>
+        <div class="result-item"><span>Düzeltilmiş Akım Taşıma Kapasitesi:</span> <span id="res-kapasite"></span></div>
+        <div class="result-item"><span>Akım Kontrolü:</span> <span id="res-akim-kontrol"></span></div>
+        <div class="result-item"><span>Gerilim Düşümü (V):</span> <span id="res-deltau-v"></span></div>
+        <div class="result-item"><span>Gerilim Düşümü (%):</span> <span id="res-deltau-yuzde"></span></div>
+        <div class="result-item"><span>Gerilim Kontrolü (%3 sınırı):</span> <span id="res-gerilim-kontrol"></span></div>
+        <div class="result-item"><span>Güç Kaybı (W):</span> <span id="res-guc-kaybi"></span></div>
+    </div>
+</div>
+
+<script>
+    // Excel'deki XLPE ve Reaktans/İndüktans Tablosu Verileri
+    const kabloKatalog = {
+        "1x35/16": { r1: 0.6707, kapasite: 214 },
+        "1x50/16": { r1: 0.4954, kapasite: 251 },
+        "1x70/16": { r1: 0.3430, kapasite: 306 },
+        "1x120/16": { r1: 0.1958, kapasite: 410 },
+        "1x240/25": { r1: 0.0965, kapasite: 576 }
+    };
+
+    function hesapla() {
+        // Form verilerini al
+        const P = parseFloat(document.getElementById('guc').value);
+        const Udc = parseFloat(document.getElementById('gerilim').value);
+        const L = parseFloat(document.getElementById('metraj').value);
+        const n = parseFloat(document.getElementById('paralel').value);
+        const secilenKesit = document.getElementById('kesit').value;
+        const f1 = parseFloat(document.getElementById('f1').value);
+        const f2 = parseFloat(document.getElementById('f2').value);
+
+        // Katalogdan değerleri çek
+        const r1 = kabloKatalog[secilenKesit].r1;
+        const bazKapasite = kabloKatalog[secilenKesit].kapasite;
+
+        // MATEMATİKSEL HESAPLAMALAR (Excel Formüllerinin Karşılığı)
+        const guc_W = P * 1000;
+        const Idc = guc_W / Udc; // Toplam Akım
+        const I_kablo = Idc / n; // Kablo başına düşen akım
+
+        const duzeltilmisKapasite = bazKapasite * f1 * f2;
+        const akimUygun = duzeltilmisKapasite >= I_kablo;
+
+        // Direnç ve Gerilim Düşümü (DC sistemler için 2 çarpımanı gidiş-dönüş içindir)
+        const R_esdeger = (r1 * (L / 1000)) / n;
+        const deltaU = 2 * Idc * R_esdeger;
+        const yuzdeDeltaU = (deltaU / Udc) * 100;
+        const gerilimUygun = yuzdeDeltaU <= 3.0;
+
+        // Güç Kaybı
+        const deltaP = 2 * Math.pow(Idc, 2) * R_esdeger;
+
+        // SONUÇLARI EKRANA YAZDIRMA
+        document.getElementById('res-toplam-akim').innerText = Idc.toFixed(2) + " A";
+        document.getElementById('res-kablo-akim').innerText = I_kablo.toFixed(2) + " A";
+        document.getElementById('res-kapasite').innerText = duzeltilmisKapasite.toFixed(2) + " A";
+        
+        const elAkimKontrol = document.getElementById('res-akim-kontrol');
+        elAkimKontrol.innerText = akimUygun ? "UYGUN" : "UYGUN DEĞİL - KESİT BÜYÜTÜN";
+        elAkimKontrol.className = akimUygun ? "uygun" : "hata";
+
+        document.getElementById('res-deltau-v').innerText = deltaU.toFixed(2) + " V";
+        document.getElementById('res-deltau-yuzde').innerText = "% " + yuzdeDeltaU.toFixed(4);
+        
+        const elGerilimKontrol = document.getElementById('res-gerilim-kontrol');
+        elGerilimKontrol.innerText = gerilimUygun ? "UYGUN" : "UYGUN DEĞİL";
+        elGerilimKontrol.className = gerilimUygun ? "uygun" : "hata";
+
+        document.getElementById('res-guc-kaybi').innerText = deltaP.toFixed(2) + " W";
+
+        // Sonuç kutusunu görünür yap
+        document.getElementById('sonuclar').style.display = "block";
+    }
+</script>
+
+</body>
+</html>
